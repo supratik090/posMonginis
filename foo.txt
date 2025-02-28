@@ -1,0 +1,90 @@
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { Button, Form, Input, Modal, Select, Table, message } from "antd";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import DefaultLayout from "../components/DefaultLayout";
+
+const ItemPage = () => {
+  const dispatch = useDispatch();
+  const [itemsData, setItemsData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]); // <-- Added for search
+  const [searchTerm, setSearchTerm] = useState(""); // <-- Search term state
+  const [popupModal, setPopupModal] = useState(false);
+  const [editItem, setEditItem] = useState(null);
+
+  const getAllItems = async () => {
+    try {
+      dispatch({ type: "SHOW_LOADING" });
+      const { data } = await axios.get("/api/items/get-item");
+      setItemsData(data);
+      setFilteredData(data); // <-- Initialize filteredData
+      dispatch({ type: "HIDE_LOADING" });
+    } catch (error) {
+      dispatch({ type: "HIDE_LOADING" });
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getAllItems();
+  }, []);
+
+  // Handle search function
+  const handleSearch = (e) => {
+    const value = e.target.value.toLowerCase();
+    setSearchTerm(value);
+    setFilteredData(
+      itemsData.filter((item) => item.name.toLowerCase().includes(value))
+    );
+  };
+
+  const columns = [
+    { title: "Name", dataIndex: "name" },
+    { title: "Code", dataIndex: "code" },
+    { title: "Price", dataIndex: "price" },
+    { title: "Quantity", dataIndex: "quantity" },
+    { title: "Updated", dataIndex: "updatedAt" },
+    { title: "ShelfLife", dataIndex: "shelfLife" },
+    {
+      title: "Actions",
+      dataIndex: "_id",
+      render: (id, record) => (
+        <div>
+          <EditOutlined
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              setEditItem(record);
+              setPopupModal(true);
+            }}
+          />
+          <DeleteOutlined
+            style={{ cursor: "pointer", marginLeft: 10 }}
+            onClick={() => handleDelete(record)}
+          />
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <DefaultLayout>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h1>Item List</h1>
+        <Input
+          placeholder="Search by Name"
+          value={searchTerm}
+          onChange={handleSearch} // <-- Search box handler
+          style={{ width: 200 }}
+        />
+        <Button type="primary" onClick={() => setPopupModal(true)}>
+          Add Item
+        </Button>
+      </div>
+
+      <Table columns={columns} dataSource={filteredData} bordered />
+    </DefaultLayout>
+  );
+};
+
+export default ItemPage;

@@ -1,0 +1,25 @@
+m0JyvZmxsEKi4CMK
+
+
+
+
+    set DB_URL=mongodb+srv://houseofsupr:m0JyvZmxsEKi4CMK@clusterhos.4ifj7.mongodb.net/database
+
+mongodb+srv://houseofsupr:m0JyvZmxsEKi4CMK@clusterhos.4ifj7.mongodb.net/?retryWrites=true&w=majority&appName=ClusterHos
+
+
+test123@gmail.com
+Test_123
+
+
+to start client
+
+C:\dev\pos1\POSView>node index.js
+C:\dev\pos1\POSView\client>npm start
+
+
+
+
+
+
+db.bills.find( {"_id": ObjectId("67bc7a19e68ac2ac136cd845")});
