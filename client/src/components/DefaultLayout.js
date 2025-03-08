@@ -65,7 +65,15 @@ const DefaultLayout = ({ children }) => {
           >
             Items
           </Menu.Item>
-                    <Menu.Item
+
+          <Menu.Item
+            key="/delivery"
+            icon={<CopyOutlined />}
+            onClick={() => navigate("/delivery")}
+          >
+            Morning delivery
+          </Menu.Item>
+                              <Menu.Item
                       key="/inventory"
                       icon={<UnorderedListOutlined />}
                       onClick={() => navigate("/inventory")}
@@ -79,6 +87,7 @@ const DefaultLayout = ({ children }) => {
           >
             Customers
           </Menu.Item>
+
           <Menu.Item
             key="/logout"
             icon={<LogoutOutlined />}

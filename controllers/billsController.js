@@ -1,4 +1,5 @@
 const billsModel = require("../models/billsModel");
+const returnModel = require("../models/returnModel");
 const inventoryModel = require("../models/inventoryModels");
 const customerModel = require("../models/customerModel");
 const moment = require("moment-timezone");
@@ -78,10 +79,34 @@ const getBillsController = async (req, res) => {
   }
 };
 
+const addReturnsController = async (req, res) => {
+  try {
+    console.log(req.body);
+
+    const { creditNote } = req.body;
+    if (!creditNote) {
+      return res.status(400).send("Credit Note Number is required");
+    }
+
+    // Replace or insert the document (upsert = true)
+    await returnModel.findOneAndUpdate(
+      { _id: creditNote  },
+      req.body,
+      { upsert: true, new: true }
+    );
+
+    res.send("Return saved/replaced successfully!");
+  } catch (error) {
+    console.error("Error saving return: ", error);
+    res.status(500).send("Something went wrong");
+  }
+};
+
 
 
 
 module.exports = {
   addBillsController,
   getBillsController,
+  addReturnsController,
 };

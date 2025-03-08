@@ -140,9 +140,23 @@ const getInventoryController = async (req, res, next) => {
     try {
 //      const items = await inventoryModel.find();
 //      res.status(200).json(items);
+
+ const { date } = req.body;
+
  const items = await itemModel.find().lean(); // .lean() returns plain JS objects
+
+  // Filter based on invoiceDate if date is provided
+      let inventoryQuery = {};
+      if (date) {
+        inventoryQuery = {
+          invoiceDate: { $gte: moment(date).format("DD/MM/YYYY") }
+        };
+      }
+
+      console.log(moment(date).format("DD/MM/YYYY"));
     // Get all inventory records from inventoryModel
-    const inventoryItems = await inventoryModel.find().lean();
+    const inventoryItems = await inventoryModel.find(inventoryQuery).lean();
+
 
      const itemLookup = {};
        items.forEach(item => {

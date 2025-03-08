@@ -5,6 +5,7 @@ import CustomerPage from "./pages/CustomerPage";
 import Homepage from "./pages/Homepage";
 import ItemPage from "./pages/ItemPage";
 import InventoryPage from "./pages/InventoryPage";
+import MorningDeliveryPage from "./pages/MorningDeliveryPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -54,6 +55,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+           <Route
+                                path="/delivery"
+                                element={
+                                  <ProtectedRoute>
+                                    <MorningDeliveryPage/>
+                                  </ProtectedRoute>
+                                }
+                              />
           <Route
             path="/customers"
             element={

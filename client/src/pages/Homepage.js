@@ -1,5 +1,6 @@
-import { Col, Row, Input } from "antd";
+import { Col, Row, Input,Button  } from "antd";
 import axios from "axios";
+import { CloseOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ItemList from "../components/ItemList";
@@ -44,12 +45,18 @@ const Homepage = () => {
   return (
     <DefaultLayout>
       <div style={{ position: "relative" }}>
-        <Input
-          placeholder="Search items..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ marginBottom: 20, width: "100%" }}
-        />
+
+<Input
+  placeholder="Search items..."
+  value={searchQuery}
+  onChange={(e) => setSearchQuery(e.target.value)}
+  style={{ marginBottom: 20, width: "calc(100% - 40px)", marginRight: 8 }}
+/>
+<Button
+  icon={<CloseOutlined />}
+  onClick={() => setSearchQuery("")}
+  disabled={!searchQuery}
+/>
 
       </div>
       <div className="d-flex" style={{ display: "flex", gap: "10px", justifyContent: "space-between", flexWrap: "nowrap" }}>

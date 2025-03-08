@@ -115,6 +115,11 @@ const groupBillsByTime = (billsData) => {
         bill.cartItems.forEach((item) => {
                   const category = item.category?.toLowerCase(); // Ensure case consistency
                   if (category && categoryCounts.hasOwnProperty(category)) {
+                   if("cake"==category){
+                    console.log(categoryAmounts[category]);
+                     console.log(item.price);
+                    console.log(item.name)
+                   }
                     categoryCounts[category] += item.quantity;
                     categoryAmounts[category]+=item.price;
                   }
@@ -389,6 +394,8 @@ const handleSearch = (e) => {
                   </p>
                   <p> PaymentMode <b>{selectedBill.paymentMode}</b>
                   </p>
+                  <p> Object Id <b>{selectedBill._id}</b>
+                                    </p>
                 </p>
                 <hr style={{ margin: "5px" }} />
               </div>

@@ -14,6 +14,19 @@ const InventoryPage = () => {
   const [popupModal, setPopupModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [form] = Form.useForm();
+  const [allItems, setAllItems] = useState([]); // Store all items
+
+  // Fetch all items from /api/items/get-item
+  const fetchAllItems = async () => {
+    try {
+      const { data } = await axios.get("/api/items/get-item");
+      setAllItems(data);
+    } catch (error) {
+      console.error("Error fetching items:", error);
+    }
+  };
+
+
 
   // Get All Items from API
   const getAllItems = async () => {
@@ -32,6 +45,7 @@ const InventoryPage = () => {
 
   useEffect(() => {
     getAllItems();
+    fetchAllItems();
     // eslint-disable-next-line
   }, []);
 
@@ -216,10 +230,10 @@ const InventoryPage = () => {
             >
               <AutoComplete
                 placeholder="Type item name"
-                options={itemsData.map(item => ({ value: item.name }))}
+                options={allItems.map(item => ({ value: item.name }))}
                 onSelect={(value) => {
                   // Find the selected item by its name
-                  const selectedItem = itemsData.find(
+                  const selectedItem = allItems.find(
                     (item) => item.name === value
                   );
                   if (selectedItem) {
