@@ -1,0 +1,48 @@
+db.inventories.find({
+  code: {
+    $in: db.items.aggregate([
+      {
+        $lookup: {
+          from: "inventories",
+          localField: "code",
+          foreignField: "code",
+          as: "inventoryDetails"
+        }
+      },
+      { $unwind: "$inventoryDetails" },
+      {
+        $addFields: {
+          shelfLifeDate: {
+            $toDate: {
+              $add: [
+                { $toLong: "$inventoryDetails.createdAt" },
+                { $multiply: ["$shelfLife", 86400000] }
+              ]
+            }
+          },
+          todaysDate: {
+            $dateTrunc: {
+              date: "$$NOW",
+              unit: "day"
+            }
+          },
+          shelfLifeDayOnly: {
+            $dateTrunc: {
+              date: "$shelfLifeDate",
+              unit: "day"
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          $expr: {
+            $lt: ["$shelfLifeDayOnly", "$todaysDate"]  // Now excludes today's expiry
+          }
+        }
+      },
+      { $project: { code: 1, _id: 0 } }
+    ]).toArray().map(doc => doc.code)
+  },
+  quantity: { $gt: 0 }
+}).sort({ createdAt: -1 });
