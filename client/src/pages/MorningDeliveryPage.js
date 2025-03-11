@@ -85,12 +85,12 @@ const MorningDeliveryPage = () => {
           value={selectedDate}
           format="YYYY-MM-DD"
           onChange={handleDateChange}
-           style={{ backgroundColor: '#7FFFD4', padding: '5px', borderRadius: '4px' }}
+           style={{ backgroundColor: 'rgb(255, 105, 180)', padding: '5px', borderRadius: '4px' }}
         />
         <Input
           placeholder="Search by Name"
           onChange={handleSearchChange}
-          style={{ width: 300, backgroundColor: '#7FFFD4', padding: '5px', borderRadius: '4px' }}
+          style={{ width: 300, backgroundColor: 'rgb(255, 105, 180)', padding: '5px', borderRadius: '4px' }}
         />
         <Button type="primary" onClick={handleClearAll}>
           Clear All Received
