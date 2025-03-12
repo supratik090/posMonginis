@@ -23,3 +23,7 @@ C:\dev\pos1\POSView\client>npm start
 
 
 db.bills.find( {"_id": ObjectId("67bc7a19e68ac2ac136cd845")});
+
+
+(base) supratikde@supratiks-iMac posMonginis % node housekeeping/deleteOldReturns.js
+✅ Cron job scheduled to set expired inventory quantity to 0 daily at 1:30 AM

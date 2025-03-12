@@ -8,6 +8,7 @@ import {
   MenuUnfoldOutlined,
   ShoppingCartOutlined,
   UnorderedListOutlined,
+  DollarOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
@@ -87,7 +88,13 @@ const DefaultLayout = ({ children }) => {
           >
             Customers
           </Menu.Item>
-
+          <Menu.Item
+            key="/cashBox"
+            icon={<DollarOutlined />}
+            onClick={() => navigate("/cashbox")}
+          >
+            Cash Box
+          </Menu.Item>
           <Menu.Item
             key="/logout"
             icon={<LogoutOutlined />}

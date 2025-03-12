@@ -5,6 +5,7 @@ import CustomerPage from "./pages/CustomerPage";
 import Homepage from "./pages/Homepage";
 import ItemPage from "./pages/ItemPage";
 import InventoryPage from "./pages/InventoryPage";
+import CashBox from "./pages/Cashbox";
 import MorningDeliveryPage from "./pages/MorningDeliveryPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -68,6 +69,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <CustomerPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cashbox"
+            element={
+              <ProtectedRoute>
+                <CashBox />
               </ProtectedRoute>
             }
           />

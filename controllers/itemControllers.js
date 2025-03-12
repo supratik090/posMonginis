@@ -1,5 +1,6 @@
 const itemModel = require("../models/itemModels");
 const inventoryModel = require("../models/inventoryModels");
+const CashBox = require('../models/CashBox');
 
 // get items
 const getItemController = async (req, res, next) => {
@@ -213,6 +214,25 @@ const editInventoryController = async (req, res) => {
   }
 };
 
+const addBalance = async (req, res) => {
+  try {
+    const newBalance = new CashBox(req.body);
+    await newBalance.save();
+    res.status(201).send("Balance added successfully");
+  } catch (error) {
+    res.status(500).send("Failed to add balance");
+  }
+};
+
+ const getBalances = async (req, res) => {
+  try {
+    const balances = await CashBox.find().sort({ createdAt: -1 });
+    res.status(200).json(balances);
+  } catch (error) {
+    res.status(500).send("Failed to fetch balances");
+  }
+};
+
 module.exports = {
   getItemController,
   addItemController,
@@ -223,5 +243,7 @@ module.exports = {
   getInventoryController,
   editInventoryController,
   addInventoryController,
-  deleteInventoryController
+  deleteInventoryController,
+  addBalance,
+  getBalances,
 };

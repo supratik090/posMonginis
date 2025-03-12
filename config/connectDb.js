@@ -3,8 +3,7 @@ const colors = require("colors");
 
 const connectDb = async () => {
   try {
-
-    process.env.DB_URL='mongodb+srv://houseofsupr:m0JyvZmxsEKi4CMK@clusterhos.4ifj7.mongodb.net/database';
+  process.env.DB_URL="mongodb+srv://houseofsupr:m0JyvZmxsEKi4CMK@clusterhos.4ifj7.mongodb.net/database"
 
     await mongoose.connect(process.env.DB_URL, {
       useNewUrlParser: true,

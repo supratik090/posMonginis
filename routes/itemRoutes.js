@@ -9,6 +9,8 @@ const {
   editInventoryController,
   deleteInventoryController,
   getInventoryController,
+    addBalance,
+    getBalances,
 } = require("./../controllers/itemControllers");
 
 const router = express.Router();
@@ -42,5 +44,8 @@ router.put("/edit-item",    editItemController);
 
 //method - DELETE
 router.post("/delete-item", deleteItemController);
+
+router.post('/add-balance', addBalance);
+router.get('/get-balance', getBalances);
 
 module.exports = router;
