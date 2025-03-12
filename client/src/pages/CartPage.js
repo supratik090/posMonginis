@@ -21,6 +21,47 @@ const [cashReceived, setCashReceived] = useState(0);
 const [changeDue, setChangeDue] = useState(0);
 
 const [paymentMode, setPaymentMode] = useState(null);
+
+
+const [isSubmitting, setIsSubmitting] = useState(false); // Track button state
+
+const handleSubmit = async (value) => {
+  const user = localStorage.getItem("user");
+  if (!user) {
+    message.error("User not found. Please log in.");
+    return;
+  }
+
+  setIsSubmitting(true); // Disable button
+
+  const totalAmount = subTotal + adjustment;
+
+  const newObject = {
+    ...value,
+    cartItems,
+    subTotal,
+    adjustment,
+    totalAmount,
+    userId: JSON.parse(user)._id,
+  };
+
+  try {
+    await axios.post("/api/bills/add-bills", newObject);
+    message.success("Bill Generated");
+
+    // Clear cart after successful response
+    dispatch({ type: "CLEAR_CART" });
+
+    navigate("/bills");
+  } catch (error) {
+    message.error("Something went wrong");
+    console.log(error);
+  } finally {
+    setIsSubmitting(false); // Enable button again
+  }
+};
+
+
 const handlePaymentModeChange = (value) => {
   setPaymentMode(value);
   if (value !== "cash") {
@@ -108,38 +149,6 @@ const handleCashierChange = (value) => {
     },
   ];
 
-
-
- const handleSubmit = async (value) => {
-   const user = localStorage.getItem("user");
-   if (!user) {
-     message.error("User not found. Please log in.");
-     return;
-   }
-   const totalAmount = subTotal + adjustment;
-
-   const newObject = {
-     ...value,
-     cartItems,
-     subTotal,
-     adjustment,
-     totalAmount,
-     userId: JSON.parse(user)._id,
-   };
-
-   try {
-     await axios.post("/api/bills/add-bills", newObject);
-     message.success("Bill Generated");
-
-     // Dispatch action to clear cart
-     dispatch({ type: "CLEAR_CART" });
-
-     navigate("/bills");
-   } catch (error) {
-     message.error("Something went wrong");
-     console.log(error);
-   }
- };
 
 
   return (
@@ -230,10 +239,16 @@ const handleCashierChange = (value) => {
 
 
           <div className="d-flex justify-content-end" style={{ marginTop: "20px" }}>
-            <Button type="primary" htmlType="submit">
-              Save Invoice
+            <Button
+              type="primary"
+              htmlType="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Processing..." : "Save Invoice"}
             </Button>
           </div>
+
+
         </Form>
       </div>
     </DefaultLayout>

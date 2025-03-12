@@ -5,7 +5,74 @@ const customerModel = require("../models/customerModel");
 const moment = require("moment-timezone");
 
 
-//add items
+
+
+const getCustomer = async (req, res) => {
+  try {
+const bills = await customerModel.find({});
+
+    res.json(bills);
+  } catch (error) {
+    console.error("Error fetching customer:", error);
+    res.status(500).send("Server Error");
+  }
+};
+
+// Update customer notes
+const updateCustomerNotes = async (req, res) => {
+  const { id } = req.params;
+  const { notes } = req.body;
+
+  try {
+    const customer = await customerModel.findById(id);
+    if (!customer) {
+      return res.status(404).send("Customer not found");
+    }
+
+    customer.notes = notes;
+    await customer.save();
+
+    res.send("Notes updated successfully");
+  } catch (error) {
+    console.error("Error updating notes:", error);
+    res.status(500).send("Something went wrong");
+  }
+};
+
+
+
+const addCustomer = async (req, res) => {
+  try {
+   console.log(req.body);
+    const { name, phone } = req.body;
+
+    console.log(req.body + " name"+ name + " phone" + phone);
+
+    // Basic validation
+    if (!name || !phone) {
+      return res.status(400).json({ error: "Name and phone are required." });
+    }
+
+    // Check if customer already exists
+    const existingCustomer = await customerModel.findOne({ phone });
+    if (existingCustomer) {
+      return res.status(409).json({ error: "Customer already exists." });
+    }
+
+    // Save new customer
+    const newCustomer = new customerModel(req.body);
+    await newCustomer.save();
+
+    res.status(201).json({ message: "Customer added successfully.", customer: newCustomer });
+  } catch (error) {
+    console.error("Error adding customer:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
+};
+
+
+
+  //add items
 const addBillsController = async (req, res) => {
   try {
   console.log(req.body);
@@ -109,4 +176,7 @@ module.exports = {
   addBillsController,
   getBillsController,
   addReturnsController,
+  addCustomer,
+  getCustomer,
+  updateCustomerNotes,
 };
