@@ -18,6 +18,7 @@ const CashBox = () => {
       setBalances(data || []);
     } catch (error) {
       message.error("Failed to load balances");
+      setBalances([]);
     }
   };
 
@@ -28,6 +29,7 @@ const CashBox = () => {
       calculateSummary(data);
     } catch (error) {
       message.error("Failed to load today's bills");
+      setTodaySummary({ totalCash: 0, totalBills: 0 });
     }
   };
 
@@ -54,8 +56,8 @@ const CashBox = () => {
       ...values,
       total,
       userName: values.cashier,
-      note: values.note,
-      isStartOfDay,
+      note: values.note || "0",
+      isStartOfDay: false,
       time: moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss"),
     };
 
@@ -132,7 +134,7 @@ const CashBox = () => {
             </Select>
           </Form.Item>
           <Form.Item name="note" label="Note">
-            <Input.TextArea rows={3} placeholder="Add any note or remark" />
+            <Input.TextArea rows={3} placeholder="Add any note or remark" defaultValue="0" />
           </Form.Item>
           <Form.Item label="Set as Start of Day">
             <Switch checked={isStartOfDay} onChange={setIsStartOfDay} />

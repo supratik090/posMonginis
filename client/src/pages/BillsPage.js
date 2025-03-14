@@ -152,7 +152,7 @@ const totalOnline = paymentModes.online ? paymentModes.online.sales : 0;
      });
 };
 
-const targetMorning = 3000;
+const targetMorning = 4000;
 const targetAfternoon = 12000;
 
 const getTargetClass = (actual, target) => (actual >= target ? "text-green-600 font-bold" : "text-red-600 font-bold");
@@ -209,7 +209,7 @@ const handleSearch = (e) => {
 {
   title: "Date",
   dataIndex: "date",
-  render: (date) => momenttz.utc(date).tz("Asia/Kolkata").format("DD-MM-YYYY HH:mm:ss"),
+  render: (date) => momenttz.utc(date).tz("Asia/Kolkata").format("DD-MM-YYYY hh:mm A"),
   sorter: (a, b) => new Date(a.date) - new Date(b.date),
 },
 

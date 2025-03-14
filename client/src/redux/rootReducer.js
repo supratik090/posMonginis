@@ -36,10 +36,15 @@ export const rootReducer = (state = intialState, action) => {
         ),
       };
     case "CLEAR_CART":  // ✅ Clears the cart when called
-           return {
-             ...state,
-             cartItems: [],
-           };
+      return {
+        ...state,
+        cartItems: [],
+      };
+    case "LOAD_CART_DRAFT":
+      return {
+        ...state,
+        cartItems: action.payload, // Directly replace cart items
+      };
     default:
       return state;
   }
