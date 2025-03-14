@@ -2,9 +2,10 @@ const mongoose = require('mongoose');
 const moment = require('moment-timezone');
 
 const cashBoxSchema = new mongoose.Schema({
-  rs500: { type: Number, required: true },
-  rs200: { type: Number, required: true },
-  rs100: { type: Number, required: true },
+  rs500: { type: Number, required: false },
+  rs200: { type: Number, required: false },
+  rs100: { type: Number, required: false },
+  rs50: { type: Number, required: false },
   total: { type: Number, required: true },
   userName: { type: String, required: true },
   notes: { type: String, required: false },
