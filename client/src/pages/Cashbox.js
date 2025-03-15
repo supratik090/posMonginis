@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import DefaultLayout from "../components/DefaultLayout";
 import moment from "moment-timezone";
 
+
 const { Panel } = Collapse;
 
 const CashBox = () => {
@@ -185,7 +186,8 @@ const netBalanceColor = latestBalance && !isLatestStartOfDay && Math.abs(todaySu
               { title: "₹100", dataIndex: "rs100" },
               { title: "₹50", dataIndex: "rs50" },
               { title: "Total Amount", dataIndex: "total" },
-              { title: "Time", dataIndex: "time" },
+              { title: "Time", dataIndex: "time" , render: (date) => moment(date).tz("Asia/Kolkata").format("DD-MM-YYYY hh:mm A"),
+                                                      },
               { title: "Note", dataIndex: "note" },
               { title: "Start of Day", dataIndex: "isStartOfDay", render: (value) => (value ? 'Yes' : 'No') },
             ]}
