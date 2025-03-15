@@ -81,7 +81,7 @@ const groupBillsByTime = (billsData) => {
          pastry: 0,
          savory: 0,
          trading:0,
-         others:0,
+         other:0,
        };
 
        let categoryAmounts = {
@@ -89,7 +89,7 @@ const groupBillsByTime = (billsData) => {
           pastry: 0,
           savory: 0,
           trading:0,
-          others:0,
+          other:0,
         };
 
      // Start with an empty paymentModes object
@@ -115,11 +115,6 @@ const groupBillsByTime = (billsData) => {
         bill.cartItems.forEach((item) => {
                   const category = item.category?.toLowerCase(); // Ensure case consistency
                   if (category && categoryCounts.hasOwnProperty(category)) {
-                   if("cake"==category){
-                    console.log(categoryAmounts[category]);
-                     console.log(item.price);
-                    console.log(item.name)
-                   }
                     categoryCounts[category] += item.quantity;
                     categoryAmounts[category]+=item.price;
                   }

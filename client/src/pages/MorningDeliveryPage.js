@@ -4,22 +4,50 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import DefaultLayout from "../components/DefaultLayout";
 import moment from "moment";
+import { debounce } from "lodash";
+
+const styles = {
+  highlightedRow: {
+    backgroundColor: "#f5f5f5",
+    transition: "background-color 0.5s ease-in-out"
+  },
+  flashCircle: {
+    display: "inline-block",
+    position: "relative",
+    fontWeight: "bold",
+    color: "#ff5722",
+    animation: "flash 1.5s ease-in-out"
+  },
+  flashText: {
+    fontWeight: "bold",
+    color: "#ff5722",
+    animation: "flash 1.5s ease-in-out"
+  },
+  checkbox: {
+    backgroundColor: "#007bff",
+    padding: "5px",
+    borderRadius: "4px"
+  },
+  "@keyframes flash": {
+    "0%": { boxShadow: "0 0 0px rgba(255, 87, 34, 0.5)" },
+    "50%": { boxShadow: "0 0 15px rgba(255, 87, 34, 1)" },
+    "100%": { boxShadow: "0 0 0px rgba(255, 87, 34, 0.5)" }
+  }
+};
 
 const MorningDeliveryPage = () => {
   const dispatch = useDispatch();
   const [itemsData, setItemsData] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState(moment());
+  const [highlightedRow, setHighlightedRow] = useState(null);
 
   const getAllItems = useCallback(async () => {
     try {
       dispatch({ type: "SHOW_LOADING" });
       const { data } = await axios.get(`/api/items/get-inventory`);
-      const filteredData = data
-        .map(item => ({ ...item, received: false }))
-        .filter(item =>
-          item.invoiceDate === (selectedDate ? selectedDate.format("DD/MM/YYYY") : moment().format("DD/MM/YYYY"))
-        );
+      const filteredData = data.map(item => ({ ...item, received: false }))
+        .filter(item => moment(item.invoiceDate, "DD/MM/YYYY").isSame(selectedDate, "day"));
       setItemsData(filteredData);
       dispatch({ type: "HIDE_LOADING" });
     } catch (error) {
@@ -33,31 +61,29 @@ const MorningDeliveryPage = () => {
   }, [getAllItems]);
 
   const handleReceivedChange = (record) => {
-    const updatedData = itemsData.map(item =>
-      item._id === record._id ? { ...item, received: !item.received } : item
-    );
-    setItemsData(updatedData);
+    setHighlightedRow(record._id);
+    setTimeout(() => {
+      setHighlightedRow(null);
+      setItemsData(prevData => prevData.map(item => item._id === record._id ? { ...item, received: !item.received } : item));
+    }, 1500);
   };
 
   const handleClearAll = () => {
-    const resetData = itemsData.map(item => ({ ...item, received: false }));
-    setItemsData(resetData);
+    setItemsData(itemsData.map(item => ({ ...item, received: false })));
   };
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value.toLowerCase());
-  };
+  const handleSearchChange = debounce((e) => {
+    setSearchQuery(e.target.value.toLowerCase());
+  }, 300);
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
   };
 
-  const filteredData = itemsData.filter(item =>
-    item.name.toLowerCase().includes(searchTerm)
-  );
+  const filteredData = itemsData.filter(item => !item.received && item.name.toLowerCase().includes(searchQuery));
 
-  const pendingData = filteredData.filter(item => !item.received);
-  const receivedData = filteredData.filter(item => item.received);
+  const pendingData = itemsData.filter(item => !item.received);
+  const receivedData = itemsData.filter(item => item.received);
 
   const columns = [
     {
@@ -67,15 +93,19 @@ const MorningDeliveryPage = () => {
         <Checkbox
           checked={received}
           onChange={() => handleReceivedChange(record)}
-          style={{ backgroundColor: '#7FFFD4', padding: '5px', borderRadius: '4px' }}
+          style={styles.checkbox}
         />
       ),
     },
-    { title: "Name", dataIndex: "name" },
-    { title: "Code", dataIndex: "code" },
-    { title: "Price", dataIndex: "price" },
-    { title: "Quantity", dataIndex: "quantity" },
-    { title: "Invoice Date", dataIndex: "invoiceDate" }
+    { title: <b>Name</b>, dataIndex: "name", render: (text, record) => (
+      <span style={highlightedRow === record._id ? styles.flashText : {}}>{text}</span>
+    )},
+    { title: <b>Code</b>, dataIndex: "code" },
+    { title: <b>Price</b>, dataIndex: "price" },
+    { title: <b>Quantity</b>, dataIndex: "quantity", render: (text, record) => (
+      <span style={highlightedRow === record._id ? styles.flashCircle : {}}>{text}</span>
+    )},
+    { title: <b>Invoice Date</b>, dataIndex: "invoiceDate" }
   ];
 
   return (
@@ -85,12 +115,11 @@ const MorningDeliveryPage = () => {
           value={selectedDate}
           format="YYYY-MM-DD"
           onChange={handleDateChange}
-           style={{ backgroundColor: 'rgb(255, 105, 180)', padding: '5px', borderRadius: '4px' }}
         />
         <Input
           placeholder="Search by Name"
           onChange={handleSearchChange}
-          style={{ width: 300, backgroundColor: 'rgb(255, 105, 180)', padding: '5px', borderRadius: '4px' }}
+          style={{ width: 300, fontWeight: 'bold' }}
         />
         <Button type="primary" onClick={handleClearAll}>
           Clear All Received
@@ -100,30 +129,28 @@ const MorningDeliveryPage = () => {
       <Card>
         <Row gutter={16}>
           <Col span={12}>
-            <Statistic title="Pending Items" value={pendingData.length} />
+            <Statistic title={<b>Pending Items</b>} value={pendingData.length} />
           </Col>
           <Col span={12}>
-            <Statistic title="Received Items" value={receivedData.length} />
+            <Statistic title={<b>Received Items</b>} value={receivedData.length} />
           </Col>
         </Row>
       </Card>
 
-      <h4 style={{ marginTop: 20 }}>Pending Items</h4>
+      <h4 style={{ marginTop: 20 }}><b>Pending Items</b></h4>
       <Table
         columns={columns}
-        dataSource={pendingData}
+        dataSource={filteredData}
         bordered
-        rowClassName={(record) => record.received ? 'bg-light-green' : 'bg-light-pink'}
-        style={{ border: '1px solid #ffe6e6' }}
+        rowClassName={(record) => highlightedRow === record._id ? styles.highlightedRow : ''}
       />
 
-      <h4 style={{ marginTop: 20 }}>Received Items</h4>
+      <h4 style={{ marginTop: 20 }}><b>Received Items</b></h4>
       <Table
         columns={columns}
         dataSource={receivedData}
         bordered
         rowClassName={() => 'bg-light-green'}
-        style={{ border: '1px solid #d4edda' }}
       />
     </DefaultLayout>
   );

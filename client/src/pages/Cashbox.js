@@ -82,16 +82,30 @@ const CashBox = () => {
     getTodayBills();
   }, []);
 
-  const startOfDayBalance = balances.find(b => b.isStartOfDay) || { total: 0 };
-  const nonStartOfDayBalances = balances.filter(b => !b.isStartOfDay);
-  const latestBalance = nonStartOfDayBalances.length > 0 ? nonStartOfDayBalances[0] : null;
+const startOfDayBalance = balances
+  .filter(b => b.isStartOfDay)
+  .reduce((latest, b) => (!latest || new Date(b.time) > new Date(latest.time) ? b : latest), null) || { total: 0 };
 
-  const isLastBalanceStartOfDay = !latestBalance; // If no non-start-of-day balance exists
+// Find the latest balance based on timestamp
+const latestBalance = balances.length > 0
+  ? balances.reduce((latest, b) => (!latest || new Date(b.time) > new Date(latest.time) ? b : latest), null)
+  : null;
 
-  const netBalance = isLastBalanceStartOfDay ? "--" : latestBalance.total - startOfDayBalance.total;
-  const currentBalance = isLastBalanceStartOfDay ? "--" : latestBalance.total;
+const isLatestStartOfDay = latestBalance?.isStartOfDay || false;
 
-  const netBalanceColor = !isLastBalanceStartOfDay && Math.abs(todaySummary.totalCash - netBalance) > 200 ? 'red' : 'inherit';
+// Set current balance correctly
+const currentBalance = latestBalance ? (isLatestStartOfDay ? 0 : latestBalance.total) : "--";
+
+// Calculate net balance safely
+const netBalance = latestBalance && !isLatestStartOfDay
+  ? latestBalance.total - startOfDayBalance.total
+  : "--";
+
+// Color logic for net balance
+const netBalanceColor = latestBalance && !isLatestStartOfDay && Math.abs(todaySummary.totalCash - netBalance) > 200
+  ? 'red'
+  : 'inherit';
+
 
   return (
     <DefaultLayout>
@@ -146,7 +160,7 @@ const CashBox = () => {
           <Form.Item name="cashier" label="Cashier" rules={[{ required: true, message: "Please select a cashier" }]}>
             <Select placeholder="Select a cashier">
               <Select.Option value="Ankita">Ankita</Select.Option>
-              <Select.Option value="Prachi">Prachi</Select.Option>
+              <Select.Option value="Priya">Priya</Select.Option>
               <Select.Option value="Shrabani">Shrabani</Select.Option>
             </Select>
           </Form.Item>

@@ -152,33 +152,6 @@ const handleCashierChange = (value) => {
   ];
 
 
-const MAX_DRAFTS = 5;
-
-const saveDraft = () => {
-  let drafts = JSON.parse(localStorage.getItem("cartDrafts")) || [];
-  if (currentDraftIndex !== null) {
-    // Overwrite existing draft if loaded from one
-    drafts[currentDraftIndex] = { cartItems, timestamp: new Date().toISOString() };
-  } else {
-    if (drafts.length >= MAX_DRAFTS) {
-      drafts.shift(); // Remove the oldest draft
-    }
-    drafts.push({ cartItems, timestamp: new Date().toISOString() });
-  }
-  localStorage.setItem("cartDrafts", JSON.stringify(drafts));
-  message.success("Cart saved as draft");
-};
-
-const loadDraft = (index) => {
-  const drafts = JSON.parse(localStorage.getItem("cartDrafts")) || [];
-  if (drafts[index]) {
-    const selectedCart = drafts[index].cartItems;
-    dispatch({ type: "LOAD_CART_DRAFT", payload: selectedCart });
-    message.success("Draft loaded");
-  } else {
-    message.error("Draft not found");
-  }
-};
 
 const intialState = {
   loading: false,
@@ -194,10 +167,24 @@ useEffect(() => {
 
 
 
-const deleteDraft = (index) => {
-  let drafts = JSON.parse(localStorage.getItem("cartDrafts")) || [];
-  drafts.splice(index, 1);
-  localStorage.setItem("cartDrafts", JSON.stringify(drafts));
+const saveDraft = () => {
+  const draft = { cartItems, timestamp: new Date().toISOString() };
+  localStorage.setItem("cartDraft", JSON.stringify(draft));
+  message.success("Cart saved as draft");
+};
+
+const loadDraft = () => {
+  const draft = JSON.parse(localStorage.getItem("cartDraft"));
+  if (draft) {
+    dispatch({ type: "LOAD_CART_DRAFT", payload: draft.cartItems });
+    message.success("Draft loaded");
+  } else {
+    message.error("No saved draft found");
+  }
+};
+
+const deleteDraft = () => {
+  localStorage.removeItem("cartDraft");
   message.success("Draft deleted");
 };
 
@@ -296,24 +283,34 @@ const clearCart = () => {
 
 
         <div className="d-flex flex-column align-items-end" style={{ marginTop: "20px" }}>
+          <div className="d-flex justify-content-end mt-2">
+                          <Button type="danger" onClick={clearCart} style={{ marginRight: "20px", backgroundColor: "orangered" }}>
+                                Clear Cart
+                              </Button>
+
           <Button type="primary" htmlType="submit" disabled={isSubmitting}>
             {isSubmitting ? "Processing..." : "Save Invoice"}
           </Button>
-          <div className="d-flex justify-content-end mt-2">
-            <Button type="default" onClick={saveDraft} disabled={cartItems.length === 0} style={{ marginRight: "10px", backgroundColor: "beige" }}>
-              Save as Draft
-            </Button>
-            <Select placeholder="Load Draft" onChange={loadDraft} style={{ width: "150px", marginRight: "10px", backgroundColor: "beige" }}>
-              {JSON.parse(localStorage.getItem("cartDrafts"))?.map((draft, index) => (
-                <Select.Option key={index} value={index}>
-                  Draft {index + 1} - {new Date(draft.timestamp).toLocaleString()}
-                </Select.Option>
-              ))}
-            </Select>
 
-                 <Button type="default" onClick={clearCart} style={{ marginLeft: "10px", backgroundColor: "orange" }}>
-                    Clear Cart
-                  </Button>
+
+          </div>
+        </div>
+
+<div className="d-flex flex-column align-items-end" style={{ marginTop: "20px" }}>
+          <div className="d-flex justify-content-end mt-2">
+
+              <Button type="default" onClick={loadDraft}  style={{marginLeft: "20px", marginRight: "20px", backgroundColor: "orange" }}>
+                Load Draft
+              </Button>
+
+              <Button type="default" onClick={saveDraft} disabled={cartItems.length === 0} style={{marginLeft: "20px", marginRight: "20px", backgroundColor: "orange" }}>
+                Save Draft
+              </Button>
+
+
+
+
+
           </div>
         </div>
 
