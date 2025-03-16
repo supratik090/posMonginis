@@ -109,7 +109,6 @@ const groupBillsByTime = (billsData) => {
        }
        paymentModes[modeKey].count += 1;
        paymentModes[modeKey].sales += bill.totalAmount;
-
        if(bill.cartItems){
 
         bill.cartItems.forEach((item) => {
@@ -205,8 +204,9 @@ const handleSearch = (e) => {
   title: "Date",
   dataIndex: "date",
   render: (date) => momenttz.utc(date).tz("Asia/Kolkata").format("DD-MM-YYYY hh:mm A"),
-  sorter: (a, b) => new Date(a.date) - new Date(b.date),
+  sorter: (a, b) => new Date(b.date) - new Date(a.date),
 },
+
 
     { title: "Cashier", dataIndex: "cashier" ,
      sorter: (a, b) => a.cashier.localeCompare(b.cashier),},

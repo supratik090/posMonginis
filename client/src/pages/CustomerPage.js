@@ -145,15 +145,16 @@ const handleAddCustomer = async (values) => {
       </Button>
 
       {/* ✅ Show Customers Sorted by Upcoming Birthday */}
-      <Table
-        columns={columns}
-        dataSource={customers.filter(customer =>
-          customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          customer.phone.includes(searchTerm) ||
-          customer.address.toLowerCase().includes(searchTerm.toLowerCase())
-        )}
-        rowKey="_id"
-      />
+  <Table
+    columns={columns}
+    dataSource={customers.filter(customer =>
+      (customer.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (customer.phone || "").includes(searchTerm) ||
+      (customer.address?.toLowerCase() || "").includes(searchTerm.toLowerCase())
+    )}
+    rowKey="_id"
+  />
+
 
       {/* ✅ Add Customer Modal */}
       <Modal

@@ -10,6 +10,7 @@ import {
   UnorderedListOutlined,
   DollarOutlined,
   UserOutlined,
+  PieChartOutlined ,
 } from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
 import React, { useEffect, useState } from "react";
@@ -94,6 +95,13 @@ const DefaultLayout = ({ children }) => {
             onClick={() => navigate("/cashbox")}
           >
             Cash Box
+          </Menu.Item>
+          <Menu.Item
+            key="/analytics"
+            icon={<PieChartOutlined  />}
+            onClick={() => navigate("/analytics")}
+          >
+            Analytics
           </Menu.Item>
           <Menu.Item
             key="/logout"

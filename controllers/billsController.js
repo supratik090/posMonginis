@@ -170,6 +170,129 @@ const addReturnsController = async (req, res) => {
 };
 
 
+const getTotalMonthlySales = async (req, res) => {
+  try {
+    const { date } = req.query; // Expecting 'YYYY-MM' format
+
+    // Validate the input date format
+    if (!moment(date, 'YYYY-MM', true).isValid()) {
+      return res.status(400).json({ error: 'Invalid date format. Expected YYYY-MM.' });
+    }
+
+    // Parse the input date
+    const inputDate = moment.tz(date, 'YYYY-MM', 'Asia/Kolkata');
+
+    // Determine the start of the month and the current date
+    const startOfMonth = inputDate.clone().startOf('month').toDate();
+    const today = moment.tz('Asia/Kolkata').toDate();
+
+    // Ensure the end date doesn't exceed today's date
+    const endDate = inputDate.isSame(moment(), 'month') ? today : inputDate.clone().endOf('month').toDate();
+
+    // Aggregate total sales up to the endDate
+    const result = await billsModel.aggregate([
+      {
+        $match: {
+          date: {
+            $gte: startOfMonth,
+            $lte: endDate,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalSales: { $sum: '$totalAmount' },
+        },
+      },
+    ]);
+
+    // Extract total sales from the aggregation result
+    const totalSales = result.length > 0 ? result[0].totalSales : 0;
+
+    // Calculate the number of days elapsed in the month up to endDate
+    const daysElapsed = moment(endDate).date();
+
+    // Calculate average daily sales
+    const averageDailySales = totalSales / daysElapsed;
+
+    // Respond with the total and average daily sales
+    res.json({ totalSales, averageDailySales });
+  } catch (error) {
+    console.error('Error calculating total sales:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const getDailySalesByCategory = async (req, res) => {
+  try {
+    const { month } = req.query; // Expecting 'YYYY-MM' format
+
+    // Validate the input date format
+    if (!moment(month, 'YYYY-MM', true).isValid()) {
+      return res.status(400).json({ error: 'Invalid date format. Expected YYYY-MM.' });
+    }
+
+    // Parse the input month
+    const inputDate = moment.tz(month, 'YYYY-MM', 'Asia/Kolkata');
+
+    // Determine the start and end of the month
+    const startOfMonth = inputDate.clone().startOf('month').toDate();
+    const endOfMonth = inputDate.clone().endOf('month').toDate();
+
+    // Aggregate daily sales by category for the specified month
+    const salesData = await billsModel.aggregate([
+      {
+        $match: {
+          date: {
+            $gte: startOfMonth,
+            $lte: endOfMonth,
+          },
+        },
+      },
+      {
+        $unwind: '$items',
+      },
+      {
+        $group: {
+          _id: {
+            category: '$items.category',
+            day: { $dayOfMonth: '$date' },
+          },
+          totalSales: { $sum: '$items.totalAmount' },
+        },
+      },
+      {
+        $group: {
+          _id: '$_id.category',
+          dailySales: {
+            $push: {
+              day: '$_id.day',
+              totalSales: '$totalSales',
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          category: '$_id',
+          dailySales: 1,
+        },
+      },
+    ]);
+
+    res.json(salesData);
+  } catch (error) {
+    console.error('Error fetching daily sales by category:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+module.exports = { getTotalMonthlySales };
+
+
 
 
 module.exports = {
@@ -179,4 +302,6 @@ module.exports = {
   addCustomer,
   getCustomer,
   updateCustomerNotes,
+  getTotalMonthlySales,
+  getDailySalesByCategory,
 };

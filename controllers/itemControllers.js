@@ -247,5 +247,5 @@ module.exports = {
   addInventoryController,
   deleteInventoryController,
   addBalance,
-  getBalances,
+  getBalances
 };

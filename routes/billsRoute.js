@@ -6,6 +6,7 @@ const {
   addCustomer,
   getCustomer,
   updateCustomerNotes,
+  getTotalMonthlySales,
 } = require("./../controllers/billsController");
 
 const router = express.Router();
@@ -29,6 +30,12 @@ router.get("/get-customer", getCustomer);
 
 // Update Customer Notes
 router.put("/editCustomer/:id", updateCustomerNotes);
+
+// analytics get total sales
+router.get("/total-sales", getTotalMonthlySales);
+
+router.get("/total-sales-category", getDailySalesByCategory);
+
 
 
 module.exports = router;

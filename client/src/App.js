@@ -9,6 +9,7 @@ import CashBox from "./pages/Cashbox";
 import MorningDeliveryPage from "./pages/MorningDeliveryPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AnalyticsPage from "./pages/analyticsPage";
 
 function App() {
   return (
@@ -80,6 +81,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+                    <Route
+                      path="/analytics"
+                      element={
+                        <ProtectedRoute>
+                          <AnalyticsPage />
+                        </ProtectedRoute>
+                      }
+                    />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Routes>
