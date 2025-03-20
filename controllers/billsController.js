@@ -1,6 +1,6 @@
 const billsModel = require("../models/billsModel");
 const returnModel = require("../models/returnModel");
-const inventoryModel = require("../models/inventoryModels");
+const inventoryModel = require("../models/InventoryModels");
 const customerModel = require("../models/customerModel");
 const moment = require("moment-timezone");
 

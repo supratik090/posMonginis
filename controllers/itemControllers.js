@@ -1,5 +1,5 @@
 const itemModel = require("../models/itemModels");
-const inventoryModel = require("../models/inventoryModels");
+const inventoryModel = require("../models/InventoryModels");
 const CashBox = require('../models/CashBox');
 const moment = require("moment-timezone");
 
