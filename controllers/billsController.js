@@ -174,6 +174,8 @@ const getTotalMonthlySales = async (req, res) => {
   try {
     const { date } = req.query; // Expecting 'YYYY-MM' format
 
+     console.log(date);
+
     // Validate the input date format
     if (!moment(date, 'YYYY-MM', true).isValid()) {
       return res.status(400).json({ error: 'Invalid date format. Expected YYYY-MM.' });
@@ -228,6 +230,8 @@ const getDailySalesByCategory = async (req, res) => {
   try {
     const { month } = req.query; // Expecting 'YYYY-MM' format
 
+   console.log("Month"+req.query);
+   console.log(month);
     // Validate the input date format
     if (!moment(month, 'YYYY-MM', true).isValid()) {
       return res.status(400).json({ error: 'Invalid date format. Expected YYYY-MM.' });
@@ -236,61 +240,66 @@ const getDailySalesByCategory = async (req, res) => {
     // Parse the input month
     const inputDate = moment.tz(month, 'YYYY-MM', 'Asia/Kolkata');
 
+   console.log("Input Date"+inputDate);
     // Determine the start and end of the month
     const startOfMonth = inputDate.clone().startOf('month').toDate();
     const endOfMonth = inputDate.clone().endOf('month').toDate();
 
-    // Aggregate daily sales by category for the specified month
-    const salesData = await billsModel.aggregate([
-      {
-        $match: {
-          date: {
-            $gte: startOfMonth,
-            $lte: endOfMonth,
-          },
-        },
+    console.log("Start" + startOfMonth + " End of month " + endOfMonth);
+const salesData = await billsModel.aggregate([
+  {
+    $match: { date: { $gte: startOfMonth, $lte: endOfMonth } }
+  },
+  {
+    $unwind: '$cartItems'
+  },
+  {
+    $group: {
+      _id: {
+        category: '$cartItems.category',
+        day: { $dayOfMonth: '$date' }
       },
-      {
-        $unwind: '$items',
+      totalSales: {
+        $sum: {
+          $multiply: [
+            { $ifNull: ['$cartItems.price', 0] },
+            { $ifNull: ['$cartItems.quantity', 0] }
+          ]
+        }
       },
-      {
-        $group: {
-          _id: {
-            category: '$items.category',
-            day: { $dayOfMonth: '$date' },
-          },
-          totalSales: { $sum: '$items.totalAmount' },
-        },
+    },
+  },
+  {
+    $sort: { '_id.day': 1 }  // ✅ Sort by day ascending
+  },
+  {
+    $group: {
+      _id: '$_id.category',
+      totalAmount: { $sum: '$totalSales' }, // ✅ Total sales for hover
+      dailySales: {
+        $push: { day: '$_id.day', totalSales: '$totalSales' }
       },
-      {
-        $group: {
-          _id: '$_id.category',
-          dailySales: {
-            $push: {
-              day: '$_id.day',
-              totalSales: '$totalSales',
-            },
-          },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          category: '$_id',
-          dailySales: 1,
-        },
-      },
-    ]);
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      category: '$_id',
+      dailySales: 1,
+      totalAmount: 1  // ✅ Include totalAmount for UI tooltip/hover
+    }
+  },
+]);
 
+
+
+ console.log("Response : " + salesData);
     res.json(salesData);
   } catch (error) {
     console.error('Error fetching daily sales by category:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-
-
-module.exports = { getTotalMonthlySales };
 
 
 

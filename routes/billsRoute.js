@@ -7,6 +7,7 @@ const {
   getCustomer,
   updateCustomerNotes,
   getTotalMonthlySales,
+  getDailySalesByCategory,
 } = require("./../controllers/billsController");
 
 const router = express.Router();
