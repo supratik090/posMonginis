@@ -1,0 +1,1 @@
+db.bills.deleteOne({_id:ObjectId('67dc53ff4430726a5c7b3a93')})
