@@ -339,7 +339,7 @@ const getTop20SalesItems = async (req, res) => {
     }
 
 console.log("Top 20 Products Response:", JSON.stringify(topProducts, null, 2));
-    res.json("Top products"+ topProducts);
+    res.json( topProducts);
   } catch (error) {
     console.error('Error fetching top sales items:', error);
     res.status(500).json({ error: 'Internal server error' });

@@ -17,6 +17,8 @@ const Adashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [topProducts, setTopProducts] = useState([]);
   const [loadingTopProducts, setLoadingTopProducts] = useState(false);
+  const [chartMetric, setChartMetric] = useState("totalSales");
+
 
   const fetchData = useCallback(async (date) => {
     const formattedDate = date.format('YYYY-MM');
@@ -41,6 +43,19 @@ const Adashboard = () => {
     }
   }, []);
 
+  const sortedProducts = [...topProducts]
+    .sort((a, b) => b[chartMetric] - a[chartMetric]) // Sort descending based on selected metric
+    .map((product) => ({
+      ...product,
+      displayName: `${product._id} (Qty: ${product.totalSold})`, // Y-axis label
+    }));
+
+
+  useEffect(() => {
+    console.log("Updated Top Products State:", topProducts);
+  }, [topProducts]);
+
+
   useEffect(() => {
     fetchData(selectedDate);
   }, [fetchData, selectedDate]);
@@ -50,21 +65,32 @@ const Adashboard = () => {
     fetchTopProducts(selectedCategory, selectedDate);
   }, [selectedCategory, selectedDate]);
 
-  const fetchTopProducts = async (category, date) => {
-    setLoadingTopProducts(true);
-    const formattedMonth = date.format('YYYY-MM');
+const fetchTopProducts = async (category, date) => {
+  setLoadingTopProducts(true);
+  const formattedMonth = date.format('YYYY-MM');
 
-    try {
-      const response = await axios.get(`/api/bills/top-products?category=${category}&month=${formattedMonth}`);
-      console.log("Top Products Response:", response.data); // Debugging
-      setTopProducts(Array.isArray(response.data) ? response.data : []);
-    } catch (error) {
-      console.error('Error fetching top products:', error);
+  try {
+    const response = await axios.get(`/api/bills/top-products?category=${category}&month=${formattedMonth}`);
+
+    console.log("Raw API Response:", response); // Log full response
+    console.log("Response Data Type:", typeof response.data); // Should be "object"
+    console.log("Response Data (JSON):", JSON.stringify(response.data, null, 2)); // Should be an array
+
+    // Ensure the response is an array
+    if (Array.isArray(response.data)) {
+      setTopProducts(response.data);
+    } else {
+      console.error("Expected an array but received:", response.data);
       setTopProducts([]);
-    } finally {
-      setLoadingTopProducts(false);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching top products:", error);
+    setTopProducts([]);
+  } finally {
+    setLoadingTopProducts(false);
+  }
+};
+
 
   const handleDateChange = (date) => setSelectedDate(date);
 
@@ -151,17 +177,36 @@ const Adashboard = () => {
                 </Col>
               </Row>
 
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={transformedChartData}>
-                  <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  {selectedCategories.map((category, index) => (
-                    <Bar key={category} dataKey={category} stackId="a" fill={categoryColors[index % categoryColors.length]} />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
+<ResponsiveContainer width="100%" height={400}>
+  <BarChart data={transformedChartData}>
+    <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+    <YAxis />
+    <Tooltip
+      content={({ payload }) => {
+        if (!payload || payload.length === 0) return null;
+
+        const totalSales = payload[0].payload.totalSales;
+
+        return (
+          <div style={{ background: "white", padding: "10px", border: "1px solid #ddd" }}>
+            <p><strong>Day:</strong> {payload[0].payload.day}</p>
+            <p><strong>Total Sales:</strong> ₹{totalSales.toFixed(2)}</p>
+            {payload.map((entry) => (
+              <p key={entry.dataKey} style={{ color: entry.color }}>
+                {entry.name}: ₹{entry.value.toFixed(2)}
+              </p>
+            ))}
+          </div>
+        );
+      }}
+    />
+    <Legend />
+    {selectedCategories.map((category, index) => (
+      <Bar key={category} dataKey={category} stackId="a" fill={categoryColors[index % categoryColors.length]} />
+    ))}
+  </BarChart>
+</ResponsiveContainer>
+
             </Card>
           </Col>
         </Row>
@@ -182,22 +227,52 @@ const Adashboard = () => {
                     ))}
                   </Select>
                 </Col>
+                <Col span={12}>
+                  <Select
+                    value={chartMetric}
+                    onChange={(value) => setChartMetric(value)}
+                    placeholder="Select Metric"
+                    style={{ width: "100%" }}
+                  >
+                    <Option value="totalSales">Total Sales (₹)</Option>
+                    <Option value="totalSold">Total Quantity Sold</Option>
+                  </Select>
+                </Col>
               </Row>
 
-              {topProducts.length === 0 ? (
-                <Empty description="No data available for this category" />
-              ) : (
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={topProducts}>
-                    <XAxis dataKey="_id" tick={{ fontSize: 12 }} />
-                    <YAxis />
+
+              {topProducts.length > 0 ? (
+                <ResponsiveContainer width="100%" height={500}>
+                  <BarChart
+                    data={sortedProducts} // Use sorted data
+                    layout="vertical"
+                    margin={{ left: 200, right: 20, top: 20, bottom: 20 }}
+                  >
+                    <XAxis type="number" />
+                    <YAxis
+                      dataKey="displayName"
+                      type="category"
+                      width={200}
+                      tick={{ fontSize: 12 }}
+                    />
                     <Tooltip />
-                    <Legend />
-                    <Bar dataKey="totalSales" fill="#82ca9d" name="Total Sales (₹)" />
-                    <Bar dataKey="totalSold" fill="#8884d8" name="Total Quantity Sold" />
+                    <Legend
+                      formatter={(value) => value.length > 15 ? value.substring(0, 15) + "..." : value}
+                    />
+                    <Bar
+                      dataKey={chartMetric}
+                      fill={chartMetric === "totalSales" ? "#82ca9d" : "#8884d8"}
+                      name={chartMetric === "totalSales" ? "Total Sales (₹)" : "Total Quantity Sold"}
+                      barSize={20}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
+
+
+              ) : (
+                <Empty description="No data available for this category" />
               )}
+
             </Card>
           </Col>
         </Row>
