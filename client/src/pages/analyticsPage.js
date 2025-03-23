@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { DatePicker, Card, Col, Row, Statistic, Typography, Select } from 'antd';
+import { DatePicker, Card, Col, Row, Statistic, Typography, Select, Empty } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
 import DefaultLayout from "../components/DefaultLayout";
@@ -14,6 +14,9 @@ const Adashboard = () => {
   const [averageDailySales, setAverageDailySales] = useState(0);
   const [salesByCategory, setSalesByCategory] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [topProducts, setTopProducts] = useState([]);
+  const [loadingTopProducts, setLoadingTopProducts] = useState(false);
 
   const fetchData = useCallback(async (date) => {
     const formattedDate = date.format('YYYY-MM');
@@ -27,6 +30,10 @@ const Adashboard = () => {
       const salesData = Array.isArray(salesResponse.data) ? salesResponse.data : [];
       setSalesByCategory(salesData);
       setSelectedCategories(salesData.map((category) => category.category));
+
+      if (salesData.length > 0) {
+        setSelectedCategory(salesData[0].category);
+      }
     } catch (error) {
       console.error('Error fetching sales data:', error);
       setTotalSales(0);
@@ -38,6 +45,27 @@ const Adashboard = () => {
     fetchData(selectedDate);
   }, [fetchData, selectedDate]);
 
+  useEffect(() => {
+    if (!selectedCategory) return;
+    fetchTopProducts(selectedCategory, selectedDate);
+  }, [selectedCategory, selectedDate]);
+
+  const fetchTopProducts = async (category, date) => {
+    setLoadingTopProducts(true);
+    const formattedMonth = date.format('YYYY-MM');
+
+    try {
+      const response = await axios.get(`/api/bills/top-products?category=${category}&month=${formattedMonth}`);
+      console.log("Top Products Response:", response.data); // Debugging
+      setTopProducts(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error('Error fetching top products:', error);
+      setTopProducts([]);
+    } finally {
+      setLoadingTopProducts(false);
+    }
+  };
+
   const handleDateChange = (date) => setSelectedDate(date);
 
   const handleCategoryChange = (selectedValues) => {
@@ -46,6 +74,10 @@ const Adashboard = () => {
     } else {
       setSelectedCategories(selectedValues);
     }
+  };
+
+  const handleSelectedCategoryChange = (value) => {
+    setSelectedCategory(value);
   };
 
   const transformedChartData = salesByCategory.reduce((acc, category) => {
@@ -66,17 +98,13 @@ const Adashboard = () => {
     return acc;
   }, []);
 
-  const categoryColors = [
-    "#0D47A1", "#1976D2", "#42A5F5", "#00ACC1", "#00897B",
-    "#43A047", "#66BB6A", "#9CCC65", "#2E7D32"
-  ];
+  const categoryColors = ["#0D47A1", "#1976D2", "#42A5F5", "#00ACC1", "#00897B", "#43A047", "#66BB6A", "#9CCC65", "#2E7D32"];
 
   return (
     <DefaultLayout>
       <div>
         <Title level={2}>Sales Dashboard</Title>
 
-        {/* Date Picker for Month Selection */}
         <Row gutter={16} style={{ marginBottom: 20 }}>
           <Col span={12}>
             <DatePicker
@@ -89,7 +117,6 @@ const Adashboard = () => {
           </Col>
         </Row>
 
-        {/* Total Sales & Average Sales Summary */}
         <Row gutter={16}>
           <Col span={8}>
             <Card>
@@ -103,11 +130,9 @@ const Adashboard = () => {
           </Col>
         </Row>
 
-        {/* Sales Chart with Category Filter */}
         <Row gutter={16} style={{ marginTop: 20 }}>
           <Col span={24}>
             <Card title="Daily Sales by Category">
-              {/* Category Filter Dropdown placed inside the Card */}
               <Row style={{ marginBottom: 20 }}>
                 <Col span={12}>
                   <Select
@@ -118,32 +143,22 @@ const Adashboard = () => {
                     value={selectedCategories}
                     onChange={handleCategoryChange}
                   >
-                    <Option key="all" value="all">
-                      Select All Categories
-                    </Option>
+                    <Option key="all" value="all">Select All Categories</Option>
                     {salesByCategory.map((category) => (
-                      <Option key={category.category} value={category.category}>
-                        {category.category}
-                      </Option>
+                      <Option key={category.category} value={category.category}>{category.category}</Option>
                     ))}
                   </Select>
                 </Col>
               </Row>
 
-              {/* Bar Chart */}
               <ResponsiveContainer width="100%" height={400}>
-                <BarChart width={800} height={500} data={transformedChartData}>
+                <BarChart data={transformedChartData}>
                   <XAxis dataKey="day" tick={{ fontSize: 12 }} />
                   <YAxis />
                   <Tooltip />
                   <Legend />
                   {selectedCategories.map((category, index) => (
-                    <Bar
-                      key={category}
-                      dataKey={category}
-                      stackId="a"
-                      fill={categoryColors[index % categoryColors.length]}
-                    />
+                    <Bar key={category} dataKey={category} stackId="a" fill={categoryColors[index % categoryColors.length]} />
                   ))}
                 </BarChart>
               </ResponsiveContainer>
@@ -151,6 +166,41 @@ const Adashboard = () => {
           </Col>
         </Row>
 
+        <Row gutter={16} style={{ marginTop: 20 }}>
+          <Col span={24}>
+            <Card title="Top 20 Products by Sales">
+              <Row style={{ marginBottom: 20 }}>
+                <Col span={12}>
+                  <Select
+                    value={selectedCategory}
+                    onChange={handleSelectedCategoryChange}
+                    placeholder="Select Category"
+                    style={{ width: "100%" }}
+                  >
+                    {selectedCategories.map((category) => (
+                      <Option key={category} value={category}>{category}</Option>
+                    ))}
+                  </Select>
+                </Col>
+              </Row>
+
+              {topProducts.length === 0 ? (
+                <Empty description="No data available for this category" />
+              ) : (
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={topProducts}>
+                    <XAxis dataKey="_id" tick={{ fontSize: 12 }} />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="totalSales" fill="#82ca9d" name="Total Sales (₹)" />
+                    <Bar dataKey="totalSold" fill="#8884d8" name="Total Quantity Sold" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </Card>
+          </Col>
+        </Row>
       </div>
     </DefaultLayout>
   );

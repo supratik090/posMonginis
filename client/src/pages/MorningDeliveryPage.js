@@ -93,7 +93,6 @@ const MorningDeliveryPage = () => {
         <Checkbox
           checked={received}
           onChange={() => handleReceivedChange(record)}
-          style={styles.checkbox}
         />
       ),
     },

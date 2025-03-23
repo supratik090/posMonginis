@@ -227,7 +227,7 @@ const getTotalMonthlySales = async (req, res) => {
 };
 
 const getDailySalesByCategory = async (req, res) => {
-  try {
+ try {
     const { month } = req.query; // Expecting 'YYYY-MM' format
 
    console.log("Month"+req.query);
@@ -302,7 +302,49 @@ const salesData = await billsModel.aggregate([
 };
 
 
+const getTop20SalesItems = async (req, res) => {
+  try {
+    const { category, month } = req.query;
 
+    console.log("Received Month Query:", month);
+
+    if (!moment(month, 'YYYY-MM', true).isValid()) {
+      return res.status(400).json({ error: 'Invalid date format. Expected YYYY-MM.' });
+    }
+
+    const inputDate = moment.tz(month, 'YYYY-MM', 'Asia/Kolkata');
+    const startOfMonth = inputDate.clone().startOf('month').toDate();
+    const endOfMonth = inputDate.clone().endOf('month').toDate();
+
+    console.log("Start:", startOfMonth, "End:", endOfMonth);
+
+    const topProducts = await billsModel.aggregate([
+      { $match: { date: { $gte: startOfMonth, $lt: endOfMonth }, "cartItems.category": category } },
+      { $unwind: "$cartItems" },
+      { $match: { "cartItems.category": category } },
+      {
+        $group: {
+          _id: "$cartItems.name",
+          totalSold: { $sum: "$cartItems.quantity" },
+          totalSales: { $sum: { $multiply: ["$cartItems.quantity", "$cartItems.price"] } }
+        }
+      },
+      { $sort: { totalSales: -1 } },
+      { $limit: 20 }
+    ]);
+
+    if (!Array.isArray(topProducts)) {
+      console.error("Unexpected Response Format:", topProducts);
+      return res.json([]); // Return an empty array if data is not in expected format
+    }
+
+console.log("Top 20 Products Response:", JSON.stringify(topProducts, null, 2));
+    res.json("Top products"+ topProducts);
+  } catch (error) {
+    console.error('Error fetching top sales items:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 module.exports = {
   addBillsController,
@@ -313,4 +355,5 @@ module.exports = {
   updateCustomerNotes,
   getTotalMonthlySales,
   getDailySalesByCategory,
+  getTop20SalesItems,
 };

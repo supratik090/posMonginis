@@ -8,6 +8,7 @@ const {
   updateCustomerNotes,
   getTotalMonthlySales,
   getDailySalesByCategory,
+  getTop20SalesItems,
 } = require("./../controllers/billsController");
 
 const router = express.Router();
@@ -37,6 +38,6 @@ router.get("/total-sales", getTotalMonthlySales);
 
 router.get("/total-sales-category", getDailySalesByCategory);
 
-
+router.get("/top-products",getTop20SalesItems);
 
 module.exports = router;
