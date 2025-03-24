@@ -1,5 +1,6 @@
 import { EyeOutlined } from "@ant-design/icons";
-import { Button, Modal, Table,Input,DatePicker  } from "antd";
+import { Empty,Spin,Card,Button, Modal, Table,Input,DatePicker  } from "antd";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,CartesianGrid,Legend } from "recharts";
 import axios from "axios";
 import moment from "moment";
 import momenttz from "moment-timezone";
@@ -8,6 +9,9 @@ import { useDispatch } from "react-redux";
 import { useReactToPrint } from "react-to-print";
 import DefaultLayout from "../components/DefaultLayout";
 import "../styles/InvoiceStyles.css";
+
+
+
 
 
 const BillsPage = () => {
@@ -19,19 +23,57 @@ const BillsPage = () => {
   const [popupModal, setPopupModal] = useState(false);
   const [selectedBill, setSelectedBill] = useState(null);
   const [showSalesSummary, setShowSalesSummary] = useState(false);
+   const [hiddenLines, setHiddenLines] = useState({ todaySales: false, avgSales30: false, avgSales7: false });
+
+
+ const [salesData, setSalesData] = useState([]);
+  const [loadingSalesChart, setLoadingSalesChart] = useState(false);
 
 const [selectedDate, setSelectedDate] = useState(null);
 const todayMumbai = momenttz().tz("Asia/Kolkata").format("DD-MM-YYYY");
+
+
+  const handleLegendClick = (e) => {
+    setHiddenLines((prev) => ({ ...prev, [e.dataKey]: !prev[e.dataKey] }));
+  };
 
 const handleDateChange = (date, dateString) => {
   if (date) {
     setSelectedDate(dateString); // Store formatted date
     getAllBills(dateString); // Fetch bills using formatted date
+    fetchSalesData(dateString)
   }
 };
 
 
+    //useEffect
+    useEffect(() => {
+      fetchSalesData(todayMumbai);
+      //eslint-disable-next-line
+    }, []);
 
+
+    const fetchSalesData = async (selectedDate) => {
+      try {
+           // Convert the selected date to a format the backend understands
+
+     const formattedDate = moment(selectedDate, "DD-MM-YYYY").format("YYYY-MM-DD");
+
+
+          const response = await axios.get(`/api/bills/5minLineChart?date=${formattedDate}`);
+
+                  if (Array.isArray(response.data)) {
+                    setSalesData(response.data);
+                     console.log("Data processed:", response.data);
+                  } else {
+                    setData([]);
+                    console.error("Unexpected data format:", response.data);
+                  }
+
+      } catch (error) {
+        console.error("Error fetching sales data:", error);
+      }
+    };
 
   const [bills, setBills] = useState([]);
     const [summary, setSummary] = useState({
@@ -349,6 +391,37 @@ const handleSearch = (e) => {
                    className="mb-4 p-2 border border-gray-300 rounded text-blue-500"
                  />
         <Table columns={columns} dataSource={filteredBills} bordered />
+            <Card title="Sales Trend Over Time">
+              <div style={{ height: 500, marginTop: 20 }}>
+                      {salesData.length > 0 ? (
+  <ResponsiveContainer width="100%" height={400}>
+        <LineChart data={salesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="time" />
+          <YAxis />
+          <Tooltip />
+          <Legend onClick={handleLegendClick} />
+          {!hiddenLines.todaySales && (
+            <Line type="monotone" dataKey="todaySales" stroke="#8884d8" name="Today's Sales" strokeWidth={3} />
+          )}
+          {!hiddenLines.avgSales30 && (
+            <Line type="monotone" dataKey="avgSales30" stroke="#82ca9d" name="30-Day Avg Sales" strokeDasharray="5 5" />
+          )}
+          {!hiddenLines.avgSales7 && (
+            <Line type="monotone" dataKey="avgSales7" stroke="#ff7300" name="7-Day Avg Sales" strokeDasharray="5 5" />
+          )}
+        </LineChart>
+      </ResponsiveContainer>
+                      ) : (
+                        <Empty description="No sales data available" />
+                      )}
+                    </div>
+             </Card>
+
+
+
+
+
 
       {popupModal && (
         <Modal

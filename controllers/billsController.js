@@ -138,7 +138,6 @@ const getBillsController = async (req, res) => {
       date: { $gte: start, $lte: end },
     });
 
-    console.log("Bills for selected date:", bills);
     res.json(bills);
   } catch (error) {
     console.error("Error fetching bills:", error);
@@ -292,8 +291,6 @@ const salesData = await billsModel.aggregate([
 ]);
 
 
-
- console.log("Response : " + salesData);
     res.json(salesData);
   } catch (error) {
     console.error('Error fetching daily sales by category:', error);
@@ -346,6 +343,75 @@ console.log("Top 20 Products Response:", JSON.stringify(topProducts, null, 2));
   }
 };
 
+
+const getDailySalesTrend = async (req, res) => {
+  try {
+      const { date } = req.query; // Expected format: YYYY-MM-DD
+         if (!date) {
+           return res.status(400).json({ error: "Date parameter is required" });
+         }
+
+         const todayStart = moment.tz(date, "Asia/Kolkata").startOf("day").toDate();
+         const todayEnd = moment.tz(date, "Asia/Kolkata").endOf("day").toDate();
+         const past30Start = moment.tz(date, "Asia/Kolkata").subtract(30, "days").startOf("day").toDate();
+         const past30End = moment.tz(date, "Asia/Kolkata").subtract(1, "day").endOf("day").toDate();
+         const past7Start = moment.tz(date, "Asia/Kolkata").subtract(7, "days").startOf("day").toDate();
+         const past7End = moment.tz(date, "Asia/Kolkata").subtract(1, "day").endOf("day").toDate();
+
+         // Fetch today's sales grouped by hour (converted to IST)
+         const todaySales = await billsModel.aggregate([
+           { $match: { date: { $gte: todayStart, $lte: todayEnd } } },
+           { $group: { _id: { hour: { $hour: { date: "$date", timezone: "Asia/Kolkata" } } }, totalSales: { $sum: "$totalAmount" } } },
+           { $sort: { "_id.hour": 1 } }
+         ]);
+
+         // Fetch past 30 days' average sales grouped by hour (converted to IST)
+         const past30Sales = await billsModel.aggregate([
+           { $match: { date: { $gte: past30Start, $lte: past30End } } },
+           { $group: { _id: { day: { $dayOfMonth: "$date" }, hour: { $hour: { date: "$date", timezone: "Asia/Kolkata" } } }, totalSales: { $sum: "$totalAmount" } } },
+           { $group: { _id: "$_id.hour", avgSales: { $avg: "$totalSales" } } },
+           { $sort: { "_id": 1 } }
+         ]);
+
+         // Fetch past 7 days' average sales grouped by hour (converted to IST)
+         const past7Sales = await billsModel.aggregate([
+           { $match: { date: { $gte: past7Start, $lte: past7End } } },
+           { $group: { _id: { day: { $dayOfMonth: "$date" }, hour: { $hour: { date: "$date", timezone: "Asia/Kolkata" } } }, totalSales: { $sum: "$totalAmount" } } },
+           { $group: { _id: "$_id.hour", avgSales7: { $avg: "$totalSales" } } },
+           { $sort: { "_id": 1 } }
+         ]);
+
+         // Format data to cumulative sales trend
+         let cumulativeToday = 0;
+         let cumulativeAvg30 = 0;
+         let cumulativeAvg7 = 0;
+         const formattedData = [];
+         for (let i = 7; i < 24; i++) { // Start from 7 AM
+           const todayEntry = todaySales.find((entry) => entry._id.hour === i) || { totalSales: 0 };
+           const avg30Entry = past30Sales.find((entry) => entry._id === i) || { avgSales: 0 };
+           const avg7Entry = past7Sales.find((entry) => entry._id === i) || { avgSales7: 0 };
+           cumulativeToday += todayEntry.totalSales;
+           cumulativeAvg30 += avg30Entry.avgSales;
+           cumulativeAvg7 += avg7Entry.avgSales7;
+
+           formattedData.push({
+             time: `${i}:00`, // Displaying hours in IST
+             todaySales: cumulativeToday,
+             avgSales30: cumulativeAvg30,
+             avgSales7: cumulativeAvg7,
+           });
+         }
+
+         res.json(formattedData);
+  } catch (error) {
+    console.error("Error fetching daily sales trend:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+
+
 module.exports = {
   addBillsController,
   getBillsController,
@@ -356,4 +422,5 @@ module.exports = {
   getTotalMonthlySales,
   getDailySalesByCategory,
   getTop20SalesItems,
+  getDailySalesTrend,
 };

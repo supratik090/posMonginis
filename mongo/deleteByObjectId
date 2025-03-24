@@ -1,1 +1,11 @@
 db.bills.deleteOne({_id:ObjectId('67dc53ff4430726a5c7b3a93')})
+
+
+
+db.inventories.find({
+  createdAt: { $gt: ISODate('2025-02-16T15:10:27.488Z') }
+});
+
+db.inventories.deleteMany({
+  createdAt: { $gt: ISODate('2025-03-22T00:10:27.488Z') }
+});
