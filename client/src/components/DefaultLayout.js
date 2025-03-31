@@ -96,13 +96,7 @@ const DefaultLayout = ({ children }) => {
           >
             Cash Box
           </Menu.Item>
-          <Menu.Item
-            key="/analytics"
-            icon={<PieChartOutlined  />}
-            onClick={() => navigate("/analytics")}
-          >
-            Analytics
-          </Menu.Item>
+
           <Menu.Item
             key="/logout"
             icon={<LogoutOutlined />}
