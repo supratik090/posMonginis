@@ -10,6 +10,7 @@ const {
   getDailySalesByCategory,
   getTop20SalesItems,
   getDailySalesTrend,
+  addReceiptsController,
 } = require("./../controllers/billsController");
 
 const router = express.Router();
@@ -24,6 +25,9 @@ router.get("/get-bills", getBillsController);
 
 //MEthod - POST
 router.post("/add-return", addReturnsController);
+
+//MEthod - POST
+router.post("/add-ros-receipts", addReceiptsController);
 
 
 //MEthod - POST

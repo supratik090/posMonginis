@@ -1,5 +1,6 @@
 const billsModel = require("../models/billsModel");
 const returnModel = require("../models/returnModel");
+const receiptsModel = require("../models/receiptsModel");
 const inventoryModel = require("../models/InventoryModels");
 const customerModel = require("../models/customerModel");
 const moment = require("moment-timezone");
@@ -157,6 +158,31 @@ const addReturnsController = async (req, res) => {
     // Replace or insert the document (upsert = true)
     await returnModel.findOneAndUpdate(
       { _id: creditNote  },
+      req.body,
+      { upsert: true, new: true }
+    );
+
+    res.send("Return saved/replaced successfully!");
+  } catch (error) {
+    console.error("Error saving return: ", error);
+    res.status(500).send("Something went wrong");
+  }
+};
+
+
+
+const addReceiptsController = async (req, res) => {
+  try {
+    console.log(req.body);
+
+    const { invoiceNumber } = req.body;
+    if (!invoiceNumber) {
+      return res.status(400).send("invoiceNumber Note Number is required");
+    }
+
+    // Replace or insert the document (upsert = true)
+    await receiptsModel.findOneAndUpdate(
+      { _id: invoiceNumber  },
       req.body,
       { upsert: true, new: true }
     );
@@ -423,4 +449,5 @@ module.exports = {
   getDailySalesByCategory,
   getTop20SalesItems,
   getDailySalesTrend,
+  addReceiptsController,
 };

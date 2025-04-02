@@ -9,7 +9,8 @@ const returnSchema = mongoose.Schema(
 
     returnDate: {
       type: String,
-      required: [false],
+      required: [true],
+       unique: true,
     },
     creditNote: {
       type: String,

@@ -1,53 +1,68 @@
-db.inventories.updateMany(
+var expiredItems = db.items.aggregate([
   {
-    code: {
-      $in: db.items.aggregate([
-        {
-          $lookup: {
-            from: "inventories",
-            localField: "code",
-            foreignField: "code",
-            as: "inventoryDetails"
-          }
-        },
-        { $unwind: "$inventoryDetails" },
-        {
-          $addFields: {
-            shelfLifeDate: {
-              $toDate: {
-                $add: [
-                  { $toLong: "$inventoryDetails.createdAt" },
-                  { $multiply: ["$shelfLife", 86400000] }
-                ]
-              }
-            },
-            todaysDate: {
-              $dateTrunc: {
-                date: "$$NOW",
-                unit: "day"
-              }
-            },
-            shelfLifeDayOnly: {
-              $dateTrunc: {
-                date: "$shelfLifeDate",
-                unit: "day"
-              }
-            }
-          }
-        },
-        {
-          $match: {
-            $expr: {
-              $lt: ["$shelfLifeDayOnly", "$todaysDate"]  // Expired only (excluding today)
-            }
-          }
-        },
-        { $project: { code: 1, _id: 0 } }
-      ]).toArray().map(doc => doc.code)
-    },
-    quantity: { $gt: 0 }  // Only update if quantity > 0
+    $lookup: {
+      from: "inventories",
+      localField: "code",
+      foreignField: "code",
+      as: "inventoryDetails"
+    }
+  },
+  { $unwind: "$inventoryDetails" },
+  {
+    $addFields: {
+      createdAtDate: { $toDate: "$inventoryDetails.createdAt" }, // Convert createdAt to readable date
+      shelfLifeDate: {
+        $toDate: {
+          $add: [
+            { $toLong: "$inventoryDetails.createdAt" }, // Convert createdAt to timestamp
+            { $multiply: ["$shelfLife", 86400000] } // Convert shelfLife (days) to milliseconds
+          ]
+        }
+      },
+      todaysDate: {
+        $dateTrunc: { date: new Date(), unit: "day" } // Get today's date truncated to midnight
+      }
+    }
   },
   {
-    $set: { quantity: 0 }
+    $match: {
+      $expr: { $lt: ["$shelfLifeDate", "$todaysDate"] } // Only expired items
+    }
+  },
+  {
+    $project: {
+      code: 1,
+      createdAtDate: 1,
+      shelfLifeDate: 1,
+      todaysDate: 1,  // Include today's date for comparison
+      _id: 0
+    }
   }
-);
+]).toArray();  // Convert results to an array
+
+
+if (expiredItems.length > 0) {
+  print("Expired Items:");
+  expiredItems.forEach(doc => printjson(doc));
+} else {
+  print("No Expired Items Found.");
+}
+
+
+var expiredCodes = expiredItems.map(doc => doc.code);
+
+if (expiredCodes.length > 0) {
+  var updateResult = db.inventories.updateMany(
+    {
+      code: { $in: expiredCodes },
+      quantity: { $gt: 0 } // Only update if quantity > 0
+    },
+    {
+      $set: { quantity: 0 }
+    }
+  );
+
+  print("Updated Inventories:", updateResult.modifiedCount, "documents.");
+} else {
+  print("No Updates Performed.");
+}
