@@ -11,6 +11,7 @@ const {
   getTop20SalesItems,
   getDailySalesTrend,
   addReceiptsController,
+  getTotalMonthlyReceipts
 } = require("./../controllers/billsController");
 
 const router = express.Router();
@@ -40,6 +41,10 @@ router.put("/editCustomer/:id", updateCustomerNotes);
 
 // analytics get total sales
 router.get("/total-sales", getTotalMonthlySales);
+
+// analytics get total sales
+router.get("/total-receipts", getTotalMonthlyReceipts);
+
 
 router.get("/total-sales-category", getDailySalesByCategory);
 

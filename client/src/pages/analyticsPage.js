@@ -18,6 +18,8 @@ const Adashboard = () => {
   const [topProducts, setTopProducts] = useState([]);
   const [loadingTopProducts, setLoadingTopProducts] = useState(false);
   const [chartMetric, setChartMetric] = useState("totalSales");
+   const [totalReceipts, setTotalReceipts] = useState(0); // New state for Total Receipts
+  const [grossMargin, setGrossMargin] = useState(0); // New state for Gross Margin
 
 
   const fetchData = useCallback(async (date) => {
@@ -27,6 +29,15 @@ const Adashboard = () => {
       const { data } = await axios.get(`/api/bills/total-sales?date=${formattedDate}`);
       setTotalSales(data.totalSales || 0);
       setAverageDailySales(data.averageDailySales || 0);
+
+
+       // Fetch total receipts for the month
+            const receiptsResponse = await axios.get(`/api/bills/total-receipts?date=${formattedDate}`);
+            setTotalReceipts(receiptsResponse.data.totalReceipts || 0);
+
+            // Calculate gross margin
+            setGrossMargin(data.totalSales - receiptsResponse.data.totalReceipts);
+
 
       const salesResponse = await axios.get(`/api/bills/total-sales-category?month=${formattedDate}`);
       const salesData = Array.isArray(salesResponse.data) ? salesResponse.data : [];
@@ -39,6 +50,7 @@ const Adashboard = () => {
     } catch (error) {
       console.error('Error fetching sales data:', error);
       setTotalSales(0);
+      setTotalReceipts(0);
       setSalesByCategory([]);
     }
   }, []);
@@ -57,7 +69,9 @@ const Adashboard = () => {
 
 
   useEffect(() => {
-    fetchData(selectedDate);
+    if (selectedDate) {
+      fetchData(selectedDate);
+    }
   }, [fetchData, selectedDate]);
 
   useEffect(() => {
@@ -92,7 +106,12 @@ const fetchTopProducts = async (category, date) => {
 };
 
 
-  const handleDateChange = (date) => setSelectedDate(date);
+
+  const handleDateChange = (date) => {
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
 
   const handleCategoryChange = (selectedValues) => {
     if (selectedValues.includes("all")) {
@@ -149,6 +168,17 @@ const fetchTopProducts = async (category, date) => {
               <Statistic title="Total Sales" value={totalSales} precision={2} valueStyle={{ color: '#3f8600' }} prefix="₹" />
             </Card>
           </Col>
+             <Col span={8}>
+                 <Card>
+                    <Statistic title="Total Receipts" value={totalReceipts} precision={2} valueStyle={{ color: '#3f8600' }} prefix="₹" />
+                 </Card>
+             </Col>
+                          <Col span={8}>
+                              <Card>
+                                 <Statistic title="Gross Margin" value={grossMargin} precision={2} valueStyle={{ color: '#3f8600' }} prefix="₹" />
+                              </Card>
+                          </Col>
+
           <Col span={8}>
             <Card>
               <Statistic title="Average Sales per day" value={averageDailySales} precision={2} valueStyle={{ color: '#3f8600' }} prefix="₹" />

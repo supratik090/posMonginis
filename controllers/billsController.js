@@ -251,6 +251,72 @@ const getTotalMonthlySales = async (req, res) => {
   }
 };
 
+
+
+
+const getTotalMonthlyReceipts = async (req, res) => {
+  try {
+    const { date } = req.query; // Expecting 'YYYY-MM' format
+
+    // Validate the input date format
+    if (!moment(date, 'YYYY-MM', true).isValid()) {
+      return res.status(400).json({ error: 'Invalid date format. Expected YYYY-MM.' });
+    }
+
+    // Parse the input date
+    const inputDate = moment.tz(date, 'YYYY-MM', 'Asia/Kolkata');
+
+    // Determine the start of the month and the current date
+    const startOfMonth = inputDate.clone().startOf('month').toDate();
+    const today = moment.tz('Asia/Kolkata').toDate();
+
+    // Ensure the end date doesn't exceed today's date
+    const endDate = inputDate.isSame(moment(), 'month') ? today : inputDate.clone().endOf('month').toDate();
+
+
+     console.log("Start  : "+startOfMonth);
+      console.log("End  : "+endDate);
+
+   const result = await receiptsModel.aggregate([
+     {
+       $addFields: {
+         parsedReturnDate: {
+           $dateFromString: {
+             dateString: "$returnDate",
+             format: "%d/%m/%Y",
+           },
+         },
+       },
+     },
+     {
+       $match: {
+         parsedReturnDate: {
+           $gte: startOfMonth,
+           $lte: endDate,
+         },
+       },
+     },
+     {
+       $group: {
+         _id: null,
+         totalReceipts: { $sum: "$totalAmount" },
+       },
+     },
+   ]);
+
+
+    // Extract total receipts from the aggregation result
+    const totalReceipts = result.length > 0 ? result[0].totalReceipts : 0;
+
+    console.log("totalReceipts  : "+totalReceipts);
+    // Respond with the total receipts for the month
+    res.json({ totalReceipts });
+  } catch (error) {
+    console.error('Error calculating total receipts:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 const getDailySalesByCategory = async (req, res) => {
  try {
     const { month } = req.query; // Expecting 'YYYY-MM' format
@@ -450,4 +516,5 @@ module.exports = {
   getTop20SalesItems,
   getDailySalesTrend,
   addReceiptsController,
+  getTotalMonthlyReceipts,
 };
