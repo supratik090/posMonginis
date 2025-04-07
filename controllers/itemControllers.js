@@ -1,6 +1,7 @@
 const itemModel = require("../models/itemModels");
 const inventoryModel = require("../models/InventoryModels");
 const CashBox = require('../models/CashBox');
+const ExpenseModel = require('../models/expenseModel');
 const moment = require("moment-timezone");
 
 
@@ -235,6 +236,61 @@ const addBalance = async (req, res) => {
   }
 };
 
+
+
+
+const addExpense = async (req, res) => {
+  try {
+    const newBalance = new ExpenseModel(req.body);
+    await newBalance.save();
+    res.status(201).send("Expense added successfully");
+  } catch (error) {
+    res.status(500).send("Failed to add balance");
+  }
+};
+
+
+
+// GET: Expenses in date range
+const getExpense =   async (req, res) => {
+  try {
+const { month } = req.query; // Expecting 'YYYY-MM' format
+
+   console.log("Month"+req.query);
+   console.log(month);
+    // Validate the input date format
+    if (!moment(month, 'YYYY-MM', true).isValid()) {
+      return res.status(400).json({ error: 'Invalid date format. Expected YYYY-MM.' });
+    }
+
+    // Parse the input month
+    const inputDate = moment.tz(month, 'YYYY-MM', 'Asia/Kolkata');
+
+   console.log("Input Date"+inputDate);
+    // Determine the start and end of the month
+    const startOfMonth = inputDate.clone().startOf('month').toDate();
+    const endOfMonth = inputDate.clone().endOf('month').toDate();
+
+    console.log("Start" + startOfMonth + " End of month " + endOfMonth);
+   const expenses = await ExpenseModel.find({
+      date: { $gte: startOfMonth, $lte: endOfMonth },
+    }).sort({ date: -1 });
+
+    const totalExpense = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+
+    res.status(200).json({
+      month: month,
+      totalExpense,
+      count: expenses.length,
+      expenses,
+    });
+
+  } catch (error) {
+    console.error('Error fetching expenses:', error);
+    res.status(500).json({ message: 'Failed to fetch expenses.' });
+  }
+ };
+
 module.exports = {
   getItemController,
   addItemController,
@@ -247,5 +303,7 @@ module.exports = {
   addInventoryController,
   deleteInventoryController,
   addBalance,
-  getBalances
+  getBalances,
+  addExpense,
+  getExpense,
 };

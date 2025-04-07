@@ -11,6 +11,8 @@ const {
   getInventoryController,
     addBalance,
     getBalances,
+      addExpense,
+      getExpense,
 } = require("./../controllers/itemControllers");
 
 const router = express.Router();
@@ -47,6 +49,10 @@ router.post("/delete-item", deleteItemController);
 
 router.post('/add-balance', addBalance);
 router.get('/get-balance', getBalances);
+
+router.post('/add-expense', addExpense);
+router.get('/get-expense', getExpense);
+
 
 
 

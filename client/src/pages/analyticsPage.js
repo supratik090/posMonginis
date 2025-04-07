@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { DatePicker, Card, Col, Row, Statistic, Typography, Select, Empty } from 'antd';
+import { DatePicker, Card, Col, Row, Statistic, Typography, Select, Empty, Table, Panel } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
 import DefaultLayout from "../components/DefaultLayout";
@@ -11,6 +11,7 @@ const { Option } = Select;
 const Adashboard = () => {
   const [selectedDate, setSelectedDate] = useState(moment());
   const [totalSales, setTotalSales] = useState(0);
+  const [totalExpense, setTotalExpense] = useState(0);
   const [averageDailySales, setAverageDailySales] = useState(0);
   const [salesByCategory, setSalesByCategory] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -20,6 +21,8 @@ const Adashboard = () => {
   const [chartMetric, setChartMetric] = useState("totalSales");
    const [totalReceipts, setTotalReceipts] = useState(0); // New state for Total Receipts
   const [grossMargin, setGrossMargin] = useState(0); // New state for Gross Margin
+  const [monthlyExpenses, setMonthlyExpenses] = useState([]);
+
 
 
   const fetchData = useCallback(async (date) => {
@@ -35,14 +38,23 @@ const Adashboard = () => {
             const receiptsResponse = await axios.get(`/api/bills/total-receipts?date=${formattedDate}`);
             setTotalReceipts(receiptsResponse.data.totalReceipts || 0);
 
-            // Calculate gross margin
-            setGrossMargin(data.totalSales - receiptsResponse.data.totalReceipts);
+
 
 
       const salesResponse = await axios.get(`/api/bills/total-sales-category?month=${formattedDate}`);
       const salesData = Array.isArray(salesResponse.data) ? salesResponse.data : [];
       setSalesByCategory(salesData);
       setSelectedCategories(salesData.map((category) => category.category));
+
+
+
+
+      const expenseResponse = await axios.get(`/api/items/get-expense?month=${formattedDate}`);
+      setTotalExpense(expenseResponse.data.totalExpense || 0);
+      setMonthlyExpenses(expenseResponse.data.expenses || []);
+
+                  // Calculate gross margin
+                  setGrossMargin(data.totalSales - receiptsResponse.data.totalReceipts- expenseResponse.data.totalExpense);
 
       if (salesData.length > 0) {
         setSelectedCategory(salesData[0].category);
@@ -51,6 +63,8 @@ const Adashboard = () => {
       console.error('Error fetching sales data:', error);
       setTotalSales(0);
       setTotalReceipts(0);
+      setTotalExpense( 0);
+
       setSalesByCategory([]);
     }
   }, []);
@@ -171,6 +185,11 @@ const fetchTopProducts = async (category, date) => {
              <Col span={8}>
                  <Card>
                     <Statistic title="Total Receipts" value={totalReceipts} precision={2} valueStyle={{ color: '#3f8600' }} prefix="₹" />
+                 </Card>
+             </Col>
+             <Col span={8}>
+                 <Card>
+                    <Statistic title="Expense" value={totalExpense} precision={2} valueStyle={{ color: '#3f8600' }} prefix="₹" />
                  </Card>
              </Col>
                           <Col span={8}>
@@ -307,6 +326,46 @@ const fetchTopProducts = async (category, date) => {
           </Col>
         </Row>
       </div>
+<Row gutter={16} style={{ marginTop: 20 }}>
+  <Col span={24}>
+    <Card title={`Monthly Expenses - Total ₹${totalExpense}`}>
+      <Table
+        dataSource={monthlyExpenses}
+        columns={[
+          {
+            title: "Date",
+            dataIndex: "date",
+            render: (date) => moment(date).format("DD-MM-YYYY"),
+          },
+          {
+            title: "Amount (₹)",
+            dataIndex: "amount",
+          },
+          {
+            title: "Reason",
+            dataIndex: "reason",
+          },
+          {
+            title: "Type",
+            dataIndex: "expenseType",
+          },
+          {
+            title: "User",
+            dataIndex: "userName",
+          },
+          {
+            title: "Notes",
+            dataIndex: "notes",
+          },
+        ]}
+        rowKey="_id"
+        pagination={{ pageSize: 8 }}
+      />
+    </Card>
+  </Col>
+</Row>
+
+
     </DefaultLayout>
   );
 };
