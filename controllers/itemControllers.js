@@ -242,6 +242,7 @@ const addBalance = async (req, res) => {
 const addExpense = async (req, res) => {
   try {
     const newBalance = new ExpenseModel(req.body);
+    console.log("Expense "+newBalance);
     await newBalance.save();
     res.status(201).send("Expense added successfully");
   } catch (error) {
