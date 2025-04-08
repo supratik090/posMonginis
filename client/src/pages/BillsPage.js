@@ -66,7 +66,7 @@ const handleDateChange = (date, dateString) => {
                     setSalesData(response.data);
                      console.log("Data processed:", response.data);
                   } else {
-                    setData([]);
+                    setSalesData([]);
                     console.error("Unexpected data format:", response.data);
                   }
 
