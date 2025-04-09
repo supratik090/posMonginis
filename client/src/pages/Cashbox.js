@@ -137,7 +137,7 @@ const CashBox = () => {
   const currentBalance = latestBalance ? (isLatestStartOfDay ? 0 : latestBalance.total) : "--";
 
   const netBalance =
-    latestBalance && !isLatestStartOfDay ? latestBalance.total - startOfDayBalance.total : "--";
+    latestBalance && !isLatestStartOfDay ? todaySummary.totalCash - (latestBalance.total - startOfDayBalance.total) : "--";
 
   const netBalanceColor =
     latestBalance && !isLatestStartOfDay && Math.abs(todaySummary.totalCash - netBalance) > 200
@@ -155,20 +155,22 @@ const CashBox = () => {
         </Col>
         <Col span={6}>
           <Card bordered={false} style={{ backgroundColor: "beige" }}>
-            <h4>Current Balance</h4>
+            <h4>Cash in Box</h4>
             <p>{currentBalance}</p>
           </Card>
         </Col>
-        <Col span={6}>
-          <Card bordered={false} style={{ backgroundColor: "bisque", color: netBalanceColor }}>
-            <h4>Net Balance</h4>
-            <p>{netBalance}</p>
-          </Card>
-        </Col>
+
         <Col span={6}>
           <Card bordered={false} style={{ backgroundColor: "bisque" }}>
-            <h4>Today's Cash</h4>
+            <h4>Today's Billing Cash</h4>
             <p>₹{todaySummary.totalCash}</p>
+          </Card>
+        </Col>
+
+        <Col span={6}>
+          <Card bordered={false} style={{ backgroundColor: "bisque", color: netBalanceColor }}>
+            <h4>Excess / Short</h4>
+            <p>{netBalance}</p>
           </Card>
         </Col>
       </Row>
