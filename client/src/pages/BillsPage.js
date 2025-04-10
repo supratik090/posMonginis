@@ -50,9 +50,11 @@ const handleDateChange = (date, dateString) => {
 
       useEffect(() => {
         fetchSalesData(todayMumbai);
+        getAllBills(todayMumbai);
 
         const interval = setInterval(() => {
           fetchSalesData();
+          getAllBills(todayMumbai);
         }, 20000); // 20 seconds
 
         return () => clearInterval(interval); // Clear interval on unmount
@@ -222,11 +224,7 @@ const getTargetClass = (actual, target) => (actual >= target ? "text-green-600 f
    }
  };
 
-  //useEffect
-  useEffect(() => {
-    getAllBills(todayMumbai);
-    //eslint-disable-next-line
-  }, []);
+
   //print function
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
