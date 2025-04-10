@@ -55,7 +55,7 @@ const handleDateChange = (date, dateString) => {
         const interval = setInterval(() => {
           fetchSalesData();
           getAllBills(todayMumbai);
-        }, 20000); // 20 seconds
+        }, 60000); // 20 seconds
 
         return () => clearInterval(interval); // Clear interval on unmount
       }, []);
