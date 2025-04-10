@@ -3,10 +3,11 @@ import { DatePicker, Card, Col, Row, Statistic, Typography, Select, Empty, Table
 import axios from 'axios';
 import moment from 'moment';
 import DefaultLayout from "../components/DefaultLayout";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie,BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,CartesianGrid,Cell } from 'recharts';
 
 const { Title } = Typography;
 const { Option } = Select;
+
 
 const Adashboard = () => {
   const [selectedDate, setSelectedDate] = useState(moment());
@@ -22,7 +23,9 @@ const Adashboard = () => {
    const [totalReceipts, setTotalReceipts] = useState(0); // New state for Total Receipts
   const [grossMargin, setGrossMargin] = useState(0); // New state for Gross Margin
   const [monthlyExpenses, setMonthlyExpenses] = useState([]);
-
+  const [weeklyCustomData, setWeeklyCustomData] = useState([]);
+  const [totalMonthlyCustomSales, setTotalMonthlyCustomSales] = useState(0);
+  const [categoryData, setCategoryData] = useState([]);
 
 
   const fetchData = useCallback(async (date) => {
@@ -46,8 +49,35 @@ const Adashboard = () => {
       setSalesByCategory(salesData);
       setSelectedCategories(salesData.map((category) => category.category));
 
+       const formatted = salesData.map(item => ({
+                category: item.category,
+                total: item.totalAmount
+              }));
+              setCategoryData(formatted);
 
 
+       const customCakeResponse = await axios.get(`/api/bills/total-sales-customCake?month=${formattedDate}`);
+        const grouped = {};
+        let totalCustomCake = 0;
+        customCakeResponse.data.forEach((item) => {
+          const dateStr = item._id.date;
+          const week = moment(dateStr).week(); // get week number
+          const year = moment(dateStr).year(); // to handle edge cases across years
+          const key = `${year}-W${week}`;
+          if (!grouped[key]) {
+            grouped[key] = { week: key, total: 0 ,count: 0};
+          }
+          grouped[key].total += item.totalAmount;
+           grouped[key].count += 1;
+          totalCustomCake += item.totalAmount;
+        });
+
+    const weeklyArray = Object.values(grouped).sort((a, b) =>
+      a.week.localeCompare(b.week)
+    );
+
+    setWeeklyCustomData(weeklyArray);
+    setTotalMonthlyCustomSales(totalCustomCake);
 
       const expenseResponse = await axios.get(`/api/items/get-expense?month=${formattedDate}`);
       setTotalExpense(expenseResponse.data.totalExpense || 0);
@@ -66,6 +96,7 @@ const Adashboard = () => {
       setTotalExpense( 0);
 
       setSalesByCategory([]);
+      setCategoryData([]);
     }
   }, []);
 
@@ -117,6 +148,21 @@ const fetchTopProducts = async (category, date) => {
   } finally {
     setLoadingTopProducts(false);
   }
+};
+
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div style={{ background: "#fff", padding: 10, border: "1px solid #ccc" }}>
+        <p><strong>{label}</strong></p>
+        <p>Total Sales: ₹{data.total}</p>
+        <p>Entries: {data.count}</p>
+      </div>
+    );
+  }
+  return null;
 };
 
 
@@ -310,7 +356,7 @@ const fetchTopProducts = async (category, date) => {
                     />
                     <Bar
                       dataKey={chartMetric}
-                      fill={chartMetric === "totalSales" ? "#82ca9d" : "#8884d8"}
+                      fill={chartMetric === "totalSales" ? "#ADD8E6" : "#8884d8"}
                       name={chartMetric === "totalSales" ? "Total Sales (₹)" : "Total Quantity Sold"}
                       barSize={20}
                     />
@@ -326,6 +372,54 @@ const fetchTopProducts = async (category, date) => {
           </Col>
         </Row>
       </div>
+
+
+<Row gutter={16} style={{ marginTop: 20 }}>
+  <Col span={24}>
+    <Card title={`Total Monthly Custom order Sales: ₹${totalMonthlyCustomSales}`}>
+
+    <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={weeklyCustomData} barCategoryGap="20%" barSize={40}  >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="week" />
+              <YAxis />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="total" fill="#ADD8E6" name="Weekly Total ₹" />
+            </BarChart>
+          </ResponsiveContainer>
+    </Card>
+
+    </Col>
+ </Row>
+
+ <Row gutter={16} style={{ marginTop: 20 }}>
+   <Col span={24}>
+     <Card title={`Sales by category`}>
+
+     <ResponsiveContainer width="100%" height={300}>
+           <PieChart>
+             <Pie
+               data={categoryData}
+               dataKey="total"
+               nameKey="category"
+               cx="50%"
+               cy="50%"
+               outerRadius={100}
+               label={({ category, total }) => `${category}: ₹${total}`}
+             >
+               {categoryData.map((entry, index) => (
+                 <Cell key={`cell-${index}`} fill={categoryColors[index % categoryColors.length]} />
+               ))}
+             </Pie>
+             <Tooltip formatter={(value) => `₹${value}`} />
+             <Legend />
+           </PieChart>
+         </ResponsiveContainer>
+     </Card>
+
+     </Col>
+  </Row>
+
 <Row gutter={16} style={{ marginTop: 20 }}>
   <Col span={24}>
     <Card title={`Monthly Expenses - Total ₹${totalExpense}`}>
@@ -364,6 +458,9 @@ const fetchTopProducts = async (category, date) => {
     </Card>
   </Col>
 </Row>
+
+
+
 
 
     </DefaultLayout>

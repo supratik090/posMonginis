@@ -503,6 +503,66 @@ const getDailySalesTrend = async (req, res) => {
 
 
 
+const getCustomCakeSales = async (req, res) => {
+ try {
+    const { month } = req.query; // Expecting 'YYYY-MM' format
+
+   console.log("Month"+req.query);
+   console.log(month);
+    // Validate the input date format
+    if (!moment(month, 'YYYY-MM', true).isValid()) {
+      return res.status(400).json({ error: 'Invalid date format. Expected YYYY-MM.' });
+    }
+
+    // Parse the input month
+    const inputDate = moment.tz(month, 'YYYY-MM', 'Asia/Kolkata');
+
+   console.log("Input Date"+inputDate);
+    // Determine the start and end of the month
+    const startOfMonth = inputDate.clone().startOf('month').toDate();
+    const endOfMonth = inputDate.clone().endOf('month').toDate();
+const timezone = "Asia/Kolkata";
+    console.log("Start" + startOfMonth + " End of month " + endOfMonth);
+const sales = await billsModel.aggregate([
+      {
+        $match: {
+          date: { $gte: startOfMonth, $lte: endOfMonth },
+        },
+      },
+      { $unwind: "$cartItems" },
+      {
+        $match: {
+          "cartItems.name": { $regex: "custom", $options: "i" },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            date: {
+              $dateToString: {
+                format: "%Y-%m-%d",
+                date: "$date",
+                timezone,
+              },
+            },
+          },
+          totalAmount: {
+            $sum: {
+              $multiply: ["$cartItems.price", "$cartItems.quantity"],
+            },
+          },
+        },
+      },
+      { $sort: { "_id.date": 1 } },
+    ]);
+
+ console.log("Custom cake: "+sales);
+    res.json(sales);
+  } catch (error) {
+    console.error('Error fetching daily sales by category:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 module.exports = {
   addBillsController,
@@ -517,4 +577,5 @@ module.exports = {
   getDailySalesTrend,
   addReceiptsController,
   getTotalMonthlyReceipts,
+  getCustomCakeSales,
 };

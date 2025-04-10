@@ -11,7 +11,8 @@ const {
   getTop20SalesItems,
   getDailySalesTrend,
   addReceiptsController,
-  getTotalMonthlyReceipts
+  getTotalMonthlyReceipts,
+  getCustomCakeSales
 } = require("./../controllers/billsController");
 
 const router = express.Router();
@@ -47,6 +48,9 @@ router.get("/total-receipts", getTotalMonthlyReceipts);
 
 
 router.get("/total-sales-category", getDailySalesByCategory);
+
+router.get("/total-sales-customCake", getCustomCakeSales);
+
 
 router.get("/top-products",getTop20SalesItems);
 

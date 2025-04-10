@@ -46,11 +46,17 @@ const handleDateChange = (date, dateString) => {
 };
 
 
-    //useEffect
-    useEffect(() => {
-      fetchSalesData(todayMumbai);
-      //eslint-disable-next-line
-    }, []);
+
+
+      useEffect(() => {
+        fetchSalesData(todayMumbai);
+
+        const interval = setInterval(() => {
+          fetchSalesData();
+        }, 20000); // 20 seconds
+
+        return () => clearInterval(interval); // Clear interval on unmount
+      }, []);
 
 
     const fetchSalesData = async (selectedDate) => {
