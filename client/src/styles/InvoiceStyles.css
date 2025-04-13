@@ -115,3 +115,40 @@ td {
   font-size: 0.7em;
   text-align: center;
 }
+
+.input-full {
+  padding: 8px;
+  width: 100%;
+  border: 1px solid #d1d5db; /* gray-300 */
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.button-toggle {
+  padding: 8px 16px;
+  background-color: #d1d5db; /* green-500 */
+  color: black;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.table-bordered {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.table-bordered th,
+.table-bordered td {
+  border: 1px solid #d1d5db;
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table-header {
+  background-color: #e5e7eb; /* gray-200 */
+}
+

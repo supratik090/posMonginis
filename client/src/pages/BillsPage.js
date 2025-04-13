@@ -23,14 +23,19 @@ const BillsPage = () => {
   const [popupModal, setPopupModal] = useState(false);
   const [selectedBill, setSelectedBill] = useState(null);
   const [showSalesSummary, setShowSalesSummary] = useState(false);
+  const [showSalesProduct, setShowSalesProduct] = useState(false);
    const [hiddenLines, setHiddenLines] = useState({ todaySales: false, avgSales30: false, avgSales7: false });
-
+ const [categoryProductSummary, setCategoryProductSummary] = useState({});
 
  const [salesData, setSalesData] = useState([]);
   const [loadingSalesChart, setLoadingSalesChart] = useState(false);
 
 const [selectedDate, setSelectedDate] = useState(null);
 const todayMumbai = momenttz().tz("Asia/Kolkata").format("DD-MM-YYYY");
+const [searchProductText, setSearchProductText] = useState("");
+const [searchTerm, setSearchTerm] = useState('');
+
+
 
 
   const handleLegendClick = (e) => {
@@ -45,20 +50,73 @@ const handleDateChange = (date, dateString) => {
   }
 };
 
+  // Function to calculate the total number of products in a category
+  const getCategoryProductCount = (products) => {
+    return Object.values(products).reduce((total, qty) => total + qty, 0);
+  };
+
+const filteredCategoryProductSummary = Object.entries(categoryProductSummary).reduce(
+  (acc, [category, products]) => {
+    const filteredProducts = Object.entries(products).filter(
+      ([product]) =>
+        category.toLowerCase().includes(searchProductText.toLowerCase()) ||
+        product.toLowerCase().includes(searchProductText.toLowerCase())
+    );
+
+    if (filteredProducts.length > 0) {
+      acc[category] = Object.fromEntries(filteredProducts);
+    }
+
+    return acc;
+  },
+  {}
+);
 
 
 
-      useEffect(() => {
-        fetchSalesData(todayMumbai);
-        getAllBills(todayMumbai);
 
-        const interval = setInterval(() => {
-          fetchSalesData();
-          getAllBills(todayMumbai);
-        }, 60000); // 20 seconds
 
-        return () => clearInterval(interval); // Clear interval on unmount
-      }, []);
+
+useEffect(() => {
+  let idleTimeout;
+  const IDLE_TIME = 180000; // 1 minute
+  const REFRESH_INTERVAL = 120000; // 2 minutes
+
+  const refreshData = () => {
+    fetchSalesData(todayMumbai);
+    getAllBills(todayMumbai);
+  };
+
+  const resetIdleTimer = () => {
+    clearTimeout(idleTimeout);
+    idleTimeout = setTimeout(() => {
+      refreshData(); // Refresh if idle for 1 minute
+    }, IDLE_TIME);
+  };
+
+  // Attach event listeners to detect activity
+  const activityEvents = ['mousemove', 'keydown', 'scroll', 'click'];
+  activityEvents.forEach(event =>
+    window.addEventListener(event, resetIdleTimer)
+  );
+
+  // Initial data fetch
+  refreshData();
+
+  // Set up recurring refresh every 2 mins
+  const interval = setInterval(refreshData, REFRESH_INTERVAL);
+
+  // Start the idle timer
+  resetIdleTimer();
+
+  return () => {
+    clearInterval(interval);
+    clearTimeout(idleTimeout);
+    activityEvents.forEach(event =>
+      window.removeEventListener(event, resetIdleTimer)
+    );
+  };
+}, []);
 
 
     const fetchSalesData = async (selectedDate) => {
@@ -120,6 +178,30 @@ const groupBillsByTime = (billsData) => {
 
   return { morningSales, afternoonSales };
 };
+
+  const calculateCategoryProductSummary = (bills) => {
+    const summary = {};
+
+    bills.forEach((bill) => {
+      bill.cartItems.forEach((item) => {
+        const { category, name, quantity } = item;
+
+        if (!summary[category]) {
+          summary[category] = {};
+        }
+
+        if (!summary[category][name]) {
+          summary[category][name] = 0;
+        }
+
+        summary[category][name] += quantity;
+      });
+    });
+
+    setCategoryProductSummary(summary);
+  };
+
+
 
 
  const calculateSummary = (billsData) => {
@@ -213,6 +295,7 @@ const getTargetClass = (actual, target) => (actual >= target ? "text-green-600 f
      setBillsData(data);
      setFilteredBills(data);
      calculateSummary(data);
+     calculateCategoryProductSummary(data)
 
      const groupedSales = groupBillsByTime(data);
      setSalesSummary(groupedSales);
@@ -395,6 +478,58 @@ const handleSearch = (e) => {
                    className="mb-4 p-2 border border-gray-300 rounded text-blue-500"
                  />
         <Table columns={columns} dataSource={filteredBills} bordered />
+ <Card title="Detailed Sales Report">
+      <div style={{ marginBottom: "10px" }}>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search by product or category"
+          style={{ padding: '8px', width: '100%', border: '1px solid #ccc', borderRadius: '6px' }}
+        />
+      </div>
+
+      <div>
+        <button
+          onClick={() => setShowSalesSummary(!showSalesSummary)}
+          className="button-toggle"
+        >
+          {showSalesSummary ? "Hide Product Sale" : "Show Product Sale"}
+        </button>
+      </div>
+
+      {showSalesSummary && (
+        <div>
+          {Object.entries(filteredCategoryProductSummary).map(([category, products]) => (
+            <details key={category} style={{ marginTop: "10px" }}>
+              <summary style={{ fontWeight: "bold", cursor: "pointer", fontSize: "16px" }}>
+                {category} ({getCategoryProductCount(products)} items)
+              </summary>
+              <table className="table-bordered" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+                <thead>
+                  <tr className="table-header">
+                    <th>Product</th>
+                    <th>Quantity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(products).map(([product, qty]) => (
+                    <tr key={`${category}-${product}`}>
+                      <td>{product}</td>
+                      <td>{qty}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </details>
+          ))}
+        </div>
+      )}
+    </Card>
+
+
+
+
             <Card title="Sales Trend Over Time">
               <div style={{ height: 500, marginTop: 20 }}>
                       {salesData.length > 0 ? (
@@ -421,6 +556,7 @@ const handleSearch = (e) => {
                       )}
                     </div>
              </Card>
+
 
 
 
