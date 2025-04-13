@@ -55,22 +55,23 @@ const handleDateChange = (date, dateString) => {
     return Object.values(products).reduce((total, qty) => total + qty, 0);
   };
 
-const filteredCategoryProductSummary = Object.entries(categoryProductSummary).reduce(
-  (acc, [category, products]) => {
-    const filteredProducts = Object.entries(products).filter(
-      ([product]) =>
-        category.toLowerCase().includes(searchProductText.toLowerCase()) ||
-        product.toLowerCase().includes(searchProductText.toLowerCase())
-    );
-
-    if (filteredProducts.length > 0) {
-      acc[category] = Object.fromEntries(filteredProducts);
-    }
-
-    return acc;
-  },
-  {}
-);
+  // Function to filter category-product summary based on the search term
+  const filteredCategoryProductSummary = Object.entries(categoryProductSummary)
+    .filter(([category, products]) => {
+      // Check if category or any product matches the search term
+      return category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        Object.keys(products).some(product => product.toLowerCase().includes(searchTerm.toLowerCase()));
+    })
+    .reduce((acc, [category, products]) => {
+      // Rebuild the object with filtered categories and products
+      acc[category] = Object.entries(products)
+        .filter(([product]) => product.toLowerCase().includes(searchTerm.toLowerCase()))
+        .reduce((productAcc, [product, qty]) => {
+          productAcc[product] = qty;
+          return productAcc;
+        }, {});
+      return acc;
+    }, {});
 
 
 
