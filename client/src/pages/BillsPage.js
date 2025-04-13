@@ -491,7 +491,11 @@ const handleSearch = (e) => {
 
       <div>
         <button
-          onClick={() => setShowSalesSummary(!showSalesSummary)}
+            onClick={(e) => {
+              e.preventDefault(); // Prevent the page from scrolling up
+               e.stopPropagation();
+              setShowSalesSummary(!showSalesSummary);
+            }}
           className="button-toggle"
         >
           {showSalesSummary ? "Hide Product Sale" : "Show Product Sale"}
