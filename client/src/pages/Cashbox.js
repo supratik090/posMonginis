@@ -137,10 +137,10 @@ const CashBox = () => {
   const currentBalance = latestBalance ? (isLatestStartOfDay ? 0 : latestBalance.total) : "--";
 
   const netBalance =
-    latestBalance && !isLatestStartOfDay ? todaySummary.totalCash - (latestBalance.total - startOfDayBalance.total) : "--";
+    latestBalance && !isLatestStartOfDay ?  (latestBalance.total - startOfDayBalance.total) - todaySummary.totalCash : "--";
 
   const netBalanceColor =
-    latestBalance && !isLatestStartOfDay && Math.abs(todaySummary.totalCash - netBalance) > 200
+    latestBalance && !isLatestStartOfDay && Math.abs(netBalance) > 300
       ? "red"
       : "inherit";
 
