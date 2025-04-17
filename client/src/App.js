@@ -10,6 +10,7 @@ import MorningDeliveryPage from "./pages/MorningDeliveryPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AnalyticsPage from "./pages/analyticsPage";
+import TradingPage from "./pages/TradingPage";
 
 function App() {
   return (
@@ -37,6 +38,15 @@ function App() {
                       element={
                         <ProtectedRoute>
                           <InventoryPage/>
+                        </ProtectedRoute>
+                      }
+                    />
+
+          <Route
+                      path="/trading"
+                      element={
+                        <ProtectedRoute>
+                          <TradingPage/>
                         </ProtectedRoute>
                       }
                     />

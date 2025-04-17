@@ -37,6 +37,10 @@ const inventorySchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+    manufacturedDt: {
+      type: Date,
+    },
+  isActive: { type: Boolean, default: true},
 }
 ,{ timestamps: true });
 

@@ -292,6 +292,72 @@ const { month } = req.query; // Expecting 'YYYY-MM' format
   }
  };
 
+
+
+const getTrading = async (req, res) => {
+  try {
+    // Fetch trading items from the itemModel with category 'Trading'
+    const tradingItems = await itemModel.find({ category: 'Trading' });
+
+    // Extract the item codes from the tradingItems
+    const tradingCodes = tradingItems.map(i => i.code);
+
+    // Fetch the inventory items where the code matches the tradingCodes
+    const inventory = await inventoryModel.find({ code: { $in: tradingCodes } ,isActive: true, quantity: { $gt: 0 } });
+
+    // Fetch the corresponding item data for each inventory item
+    const inventoryWithDetails = await Promise.all(inventory.map(async (invItem) => {
+      const item = await itemModel.findOne({ code: invItem.code });
+
+      // Manually combine the inventory and item data
+      return {
+        ...invItem.toObject(),
+        itemName: item ? item.name : null,
+        shelfLife: item ? item.shelfLife : null,
+        isActive: true,
+      };
+    }));
+
+    // Return the inventory along with the item name and shelfLife
+    res.json(inventoryWithDetails);
+  } catch (err) {
+    console.error('Error in getTrading:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+
+const updateInventory = async (req, res) => {
+ try {
+    const { id, isActive,manufacturedDt, returnDate } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: 'Inventory ID is required' });
+    }
+
+    const updatedInventory = await inventoryModel.findByIdAndUpdate(
+      id,
+      {
+      isActive,
+        manufacturedDt,
+        returnDate,
+      },
+      { new: true }
+    );
+
+    if (!updatedInventory) {
+      return res.status(404).json({ error: 'Inventory item not found' });
+    }
+
+    res.json(updatedInventory);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+
 module.exports = {
   getItemController,
   addItemController,
@@ -307,4 +373,7 @@ module.exports = {
   getBalances,
   addExpense,
   getExpense,
+  getTrading,
+  updateInventory,
+
 };

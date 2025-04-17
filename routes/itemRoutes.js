@@ -13,6 +13,8 @@ const {
     getBalances,
       addExpense,
       getExpense,
+    getTrading,
+    updateInventory,
 } = require("./../controllers/itemControllers");
 
 const router = express.Router();
@@ -54,7 +56,8 @@ router.post('/add-expense', addExpense);
 router.get('/get-expense', getExpense);
 
 
-
+router.post('/update-inventory', updateInventory);
+router.get('/get-trading', getTrading);
 
 
 module.exports = router;
