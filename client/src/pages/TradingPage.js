@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Input, Table, Modal, Form, message, DatePicker, Switch, Tabs } from "antd";
+import { Button, Input, Table, Modal, Form, message, DatePicker, Switch, Tabs ,Tooltip} from "antd";
 import { EditOutlined } from "@ant-design/icons";
 import DefaultLayout from "../components/DefaultLayout";
 import dayjs from "dayjs";
@@ -15,8 +15,13 @@ const TradingPage = () => {
   const [popupModal, setPopupModal] = useState(false);
   const [updatedInventory, setUpdatedInventory] = useState({});
   const [form] = Form.useForm();
+  const [hasMissingManufacturedDate, setHasMissingManufacturedDate] = useState(false);
+  const [hasUpcomingReturns, setHasUpcomingReturns] = useState(false);
+
+
 
   const [sorter, setSorter] = useState({});
+  const [activeTabKey, setActiveTabKey] = useState("1"); // Track the active tab key
 
   const handleTableChange = (pagination, filters, sorter) => {
     if (sorter.field === "returnDate") {
@@ -53,6 +58,23 @@ const TradingPage = () => {
         const iB = new Date(b.invoiceDate);
         return iB - iA;
       });
+
+      // Check for missing manufactured dates
+      const anyMissing = sorted.some(item => !item.manufacturedDt);
+      setHasMissingManufacturedDate(anyMissing);
+
+      const today = dayjs();
+      const twoDaysAgo = today.subtract(2, "day");
+
+      const hasReturnsSoon = sorted.some(item => {
+        const returnDt = item.returnDate ? dayjs(item.returnDate) : null;
+        return returnDt && returnDt.isAfter(twoDaysAgo, 'day');
+      });
+
+      setHasUpcomingReturns(hasReturnsSoon);
+
+      localStorage.setItem("tradingNeedsAttention", anyMissing || hasReturnsSoon);
+
 
       setData(sorted);
       setFilteredData(sorted);
@@ -149,11 +171,18 @@ const TradingPage = () => {
     {
       title: "Manufactured Date",
       dataIndex: "manufacturedDt",
-      render: (_, record) => {
-        return record.manufacturedDt
-          ? dayjs(record.manufacturedDt).format("YYYY-MM-DD")
-          : "-";
-      },
+ render: (_, record) => {
+     const manufacturedDate = record.manufacturedDt;
+
+  // Apply style if manufactured date is undefined
+     const style = (manufacturedDate === undefined || manufacturedDate === null) ? { backgroundColor: '#f8d7da' } : {};
+
+     return (
+       <div style={style}>
+         {manufacturedDate ? dayjs(manufacturedDate).format("YYYY-MM-DD") : "--"}
+       </div>
+     );
+   },
       sorter: (a, b) => {
         const dateA = a.manufacturedDt ? new Date(a.manufacturedDt) : null;
         const dateB = b.manufacturedDt ? new Date(b.manufacturedDt) : null;
@@ -234,10 +263,33 @@ const TradingPage = () => {
     }
   };
 
+  // Handle tab change
+  const handleTabChange = (key) => {
+    setActiveTabKey(key);
+    if (key === "2") {
+      // Sort by return date in descending order when the View Returns tab is selected
+      setFilteredData((prevData) =>
+        prevData.sort((a, b) => new Date(b.returnDate) - new Date(a.returnDate))
+      );
+    }
+  };
+
   return (
     <DefaultLayout>
-      <Tabs defaultActiveKey="1">
-        <TabPane tab="Edit Dates" key="1">
+      <Tabs defaultActiveKey="1" onChange={handleTabChange}>
+
+          <TabPane
+            key="1"
+            tab={
+              hasMissingManufacturedDate ? (
+                <Tooltip title="Some items are missing Manufactured Date. Please update.">
+                  <span className="tab-alert">Edit Dates ⚠️</span>
+                </Tooltip>
+              ) : (
+                "Edit Dates"
+              )
+            }
+          >
           <div className="d-flex justify-content-between">
             <h1>Trading Inventory</h1>
             <Input.Search
@@ -248,18 +300,30 @@ const TradingPage = () => {
             />
           </div>
 
-<Table
-  columns={columns}
-  dataSource={filteredData}
-  rowKey="_id"
-  bordered
-  pagination={{ pageSize: 10 }}
-  rowClassName={(record) => getRowClass(record)}
-  onChange={handleTableChange}  // Handling table change including sorting
-/>
+          <Table
+            columns={columns}
+            dataSource={filteredData}
+            rowKey="_id"
+            bordered
+            pagination={{ pageSize: 10 }}
+            rowClassName={(record) => getRowClass(record)}
+            onChange={handleTableChange} // Handling table change including sorting
+          />
         </TabPane>
 
-        <TabPane tab="View Returns" key="2">
+        <TabPane
+          key="2"
+          tab={
+            hasUpcomingReturns ? (
+              <Tooltip title="Some items are due for return soon. Please review.">
+                <span className="tab-alert">View Returns ⚠️</span>
+              </Tooltip>
+            ) : (
+              "View Returns"
+            )
+          }
+        >
+
           <div className="d-flex justify-content-between">
             <h1>Past Return Dates</h1>
           </div>

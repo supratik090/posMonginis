@@ -25,6 +25,17 @@ const DefaultLayout = ({ children }) => {
   const navigate = useNavigate();
   const { cartItems, loading } = useSelector((state) => state.rootReducer);
   const [collapsed, setCollapsed] = useState(false);
+
+
+  const [shouldFlashTrading, setShouldFlashTrading] = useState(false);
+
+  useEffect(() => {
+    const flag = localStorage.getItem("tradingNeedsAttention") === "true";
+    setShouldFlashTrading(flag);
+  }, []);
+
+
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -87,6 +98,7 @@ const DefaultLayout = ({ children }) => {
                       key="/trading"
                       icon={<StockOutlined />}
                       onClick={() => navigate("/trading")}
+                      className={shouldFlashTrading ? "flashing-tab" : ""}
                     >
                       Trading
                     </Menu.Item>
