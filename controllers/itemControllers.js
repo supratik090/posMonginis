@@ -145,15 +145,23 @@ const getInventoryController = async (req, res, next) => {
 //      const items = await inventoryModel.find();
 //      res.status(200).json(items);
 
- const { date } = req.body;
+ const { date } = req.query;
 
+  console.log("Query Date (IST):", date);
+
+     // Parse the provided date in IST without conversion to UTC
+     const start = moment.tz(date, "YYYY-MM-DD", "Asia/Kolkata").startOf("day").toDate();
+     const end = moment.tz(date, "YYYY-MM-DD", "Asia/Kolkata").endOf("day").toDate();
+
+  console.log("Start:", start);
+    console.log("End:", end);
  const items = await itemModel.find().lean(); // .lean() returns plain JS objects
 
   // Filter based on invoiceDate if date is provided
       let inventoryQuery = {};
       if (date) {
         inventoryQuery = {
-          invoiceDate: { $gte: moment(date).format("DD/MM/YYYY") }
+          invoiceDate: { $gte: moment(start).format("DD/MM/YYYY"), $lte: moment(end).format("DD/MM/YYYY")  }
         };
       }
 
@@ -315,6 +323,7 @@ const getTrading = async (req, res) => {
         itemName: item ? item.name : null,
         shelfLife: item ? item.shelfLife : null,
         isActive: true,
+        price: item ? item.price : 0,
       };
     }));
 

@@ -153,8 +153,21 @@ const TradingPage = () => {
     {
       title: "Quantity",
       dataIndex: "quantity",
-      sorter: (a, b) => a.quantity - b.quantity,
+      sorter: (a, b) => a.quantity - b.quantity
     },
+        {
+          title: "Invoice",
+          dataIndex: "invoiceNumber",
+          sorter: (a, b) => a.invoiceNumber.localeCompare(b.invoiceNumber),
+                render: (text) => {
+                    if (typeof text === "string") {
+                     const cleaned = text.replace(/\s+/g, " ").trim(); // replace all kinds of whitespace
+                          return cleaned.split(" ")[0]; // take only the first segment
+
+                    }
+                    return text;
+                  },
+        },
     {
       title: "Invoice Date",
       dataIndex: "invoiceDate",

@@ -45,9 +45,13 @@ const MorningDeliveryPage = () => {
   const getAllItems = useCallback(async () => {
     try {
       dispatch({ type: "SHOW_LOADING" });
-      const { data } = await axios.get(`/api/items/get-inventory`);
-      const filteredData = data.map(item => ({ ...item, received: false }))
-        .filter(item => moment(item.invoiceDate, "DD/MM/YYYY").isSame(selectedDate, "day"));
+
+      const formattedDate = selectedDate.format("YYYY-MM-DD");
+
+           const { data } = await axios.get(`/api/items/get-inventory?date=${formattedDate}`);
+
+
+      const filteredData = data.map(item => ({ ...item, received: false }));
       setItemsData(filteredData);
       dispatch({ type: "HIDE_LOADING" });
     } catch (error) {
@@ -86,6 +90,7 @@ const MorningDeliveryPage = () => {
   const receivedData = itemsData.filter(item => item.received);
 
   const columns = [
+
     {
       title: "✔",
       dataIndex: "received",
