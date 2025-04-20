@@ -313,6 +313,7 @@ const TradingPage = () => {
             />
           </div>
 
+<div style={{ overflowX: "auto" }}>
           <Table
             columns={columns}
             dataSource={filteredData}
@@ -320,8 +321,11 @@ const TradingPage = () => {
             bordered
             pagination={{ pageSize: 10 }}
             rowClassName={(record) => getRowClass(record)}
+            scroll={{ x: "max-content" }}
             onChange={handleTableChange} // Handling table change including sorting
           />
+          </div>
+
         </TabPane>
 
         <TabPane
@@ -340,7 +344,7 @@ const TradingPage = () => {
           <div className="d-flex justify-content-between">
             <h1>Past Return Dates</h1>
           </div>
-
+<div style={{ overflowX: "auto" }}>
           <Table
             columns={columns}
             dataSource={filteredData}
@@ -349,6 +353,7 @@ const TradingPage = () => {
             pagination={{ pageSize: 10 }}
             rowClassName={(record) => getRowClass(record)}
           />
+          </div>
         </TabPane>
       </Tabs>
 
