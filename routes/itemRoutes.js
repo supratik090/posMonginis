@@ -14,6 +14,7 @@ const {
       addExpense,
       getExpense,
     getTrading,
+    getReturns,
     updateInventory,
 } = require("./../controllers/itemControllers");
 
@@ -58,6 +59,9 @@ router.get('/get-expense', getExpense);
 
 router.post('/update-inventory', updateInventory);
 router.get('/get-trading', getTrading);
+
+router.get('/get-returns', getReturns);
+
 
 
 module.exports = router;

@@ -150,17 +150,31 @@ const addReturnsController = async (req, res) => {
   try {
     console.log(req.body);
 
-    const { creditNote } = req.body;
+    const { creditNote, returnDate } = req.body;
     if (!creditNote) {
       return res.status(400).send("Credit Note Number is required");
     }
 
+        // Convert returnDate to Date object if it is a string in DD/MM/YYYY format
+        if (returnDate && typeof returnDate === "string") {
+          req.body.returnDate = moment(returnDate, "DD/MM/YYYY").toDate();
+        }
+
     // Replace or insert the document (upsert = true)
     await returnModel.findOneAndUpdate(
-      { _id: creditNote  },
-      req.body,
-      { upsert: true, new: true }
-    );
+    { _id: creditNote },
+    {
+      $set: {
+        returnDate: req.body.returnDate,
+        creditNote: req.body.creditNote,
+        deductedAmount: req.body.deductedAmount,
+        totalAmount: req.body.totalAmount,
+        returnItems: req.body.returnItems,
+        date: moment().tz("Asia/Kolkata").toDate()
+      }
+    },
+    { upsert: true, new: true }
+  );
 
     res.send("Return saved/replaced successfully!");
   } catch (error) {
@@ -530,11 +544,28 @@ const sales = await billsModel.aggregate([
         },
       },
       { $unwind: "$cartItems" },
-      {
-        $match: {
-          "cartItems.name": { $regex: "custom", $options: "i" },
-        },
-      },
+ {
+   $match: {
+     $or: [
+       {
+         "cartItems.name": { $regex: "custom", $options: "i" }
+       },
+       {
+         "cartItems.name": { $regex: "CUST", $options: "i" }
+       },
+       {
+         "cartItems.name": { $regex: "SPECIAL", $options: "i" }
+       },
+       {
+         $and: [
+           { "cartItems.price": { $gt: 900 } },
+           { "cartItems.category": "cake" }
+         ]
+       }
+     ]
+   }
+ }
+,
       {
         $group: {
           _id: {
@@ -564,6 +595,167 @@ const sales = await billsModel.aggregate([
   }
 };
 
+
+
+
+const getDailyReturnByCategory = async (req, res) => {
+  try {
+    const { month } = req.query; // Expecting 'YYYY-MM' format
+
+    console.log("getDailyReturnByCategory Month:", month);
+
+    if (!moment(month, 'YYYY-MM', true).isValid()) {
+      return res.status(400).json({ error: 'Invalid date format. Expected YYYY-MM.' });
+    }
+
+    const inputDate = moment.tz(month, 'YYYY-MM', 'Asia/Kolkata');
+    const startOfMonth = inputDate.clone().startOf('month').toDate();
+    const endOfMonth = inputDate.clone().endOf('month').toDate();
+
+    console.log("Start:", startOfMonth, "End:", endOfMonth);
+
+    const salesData = await returnModel.aggregate([
+      {
+        $match: {
+          returnDate: { $gte: startOfMonth, $lte: endOfMonth }
+        }
+      },
+      {
+        $group: {
+          _id: { day: { $dayOfMonth: '$returnDate' } },
+          totalAmount: { $sum: { $ifNull: ['$totalAmount', 0] } } // Sum the totalAmount field directly
+        }
+      },
+      {
+        $sort: { '_id.day': 1 }
+      },
+      {
+        $project: {
+          _id: 0,
+          day: '$_id.day',
+          totalAmount: 1
+        }
+      }
+    ]);
+
+    console.log("Return data:", JSON.stringify(salesData, null, 2));
+    res.json(salesData);
+
+  } catch (error) {
+    console.error('Error in getDailyReturnByCategory:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+const getTop20ReturnedItems = async (req, res) => {
+  try {
+    const { category, month } = req.query;
+
+    console.log("🔹 Received Month Query:", month);
+
+    // 1. ✅ Validate input
+    if (!moment(month, 'YYYY-MM', true).isValid()) {
+      return res.status(400).json({ error: 'Invalid date format. Expected YYYY-MM.' });
+    }
+
+    const inputDate = moment.tz(month, 'YYYY-MM', 'Asia/Kolkata');
+    const startOfMonth = inputDate.clone().startOf('month').toDate();
+    const endOfMonth = inputDate.clone().endOf('month').toDate();
+    console.log("🔹 Date Range:", startOfMonth, "to", endOfMonth);
+
+    // 2. ✅ Get all returns in date range
+    const returnsInRange = await returnModel.aggregate([
+      {
+        $match: {
+          returnDate: { $gte: startOfMonth, $lt: endOfMonth }
+        }
+      },
+      { $unwind: "$returnItems" }
+    ]);
+    console.log("🔸 Step 1: Raw Returns:", JSON.stringify(returnsInRange.slice(0, 5), null, 2));
+
+    // 3. ✅ Enrich with items collection
+    const enrichedReturns = await returnModel.aggregate([
+      {
+        $match: {
+          returnDate: { $gte: startOfMonth, $lt: endOfMonth }
+        }
+      },
+      { $unwind: "$returnItems" },
+      {
+        $lookup: {
+          from: "items",
+          localField: "returnItems.code",
+          foreignField: "code",
+          as: "itemDetails"
+        }
+      },
+      { $unwind: { path: "$itemDetails", preserveNullAndEmptyArrays: true } },
+      {
+        $match: {
+          ...(category ? { "itemDetails.category": category } : {})
+        }
+      }
+    ]);
+    console.log("🔸 Step 2: Enriched Returns:", JSON.stringify(enrichedReturns.slice(0, 5), null, 2));
+
+    // 4. ✅ Group and calculate totals
+    const grouped = await returnModel.aggregate([
+      {
+        $match: {
+          returnDate: { $gte: startOfMonth, $lt: endOfMonth }
+        }
+      },
+      { $unwind: "$returnItems" },
+      {
+        $lookup: {
+          from: "items",
+          localField: "returnItems.code",
+          foreignField: "code",
+          as: "itemDetails"
+        }
+      },
+      { $unwind: { path: "$itemDetails", preserveNullAndEmptyArrays: true } },
+      {
+        $match: {
+          ...(category ? { "itemDetails.category": category } : {})
+        }
+      },
+      {
+        $group: {
+          _id: "$returnItems.code",
+          name: { $first: "$itemDetails.name" },
+          category: { $first: "$itemDetails.category" },
+          totalReturnedQuantity: { $sum: { $ifNull: ["$returnItems.quantity", 0] } },
+          totalReturnedAmount: {
+            $sum: {
+              $multiply: [
+                { $ifNull: ["$returnItems.price", 0] },
+                { $ifNull: ["$returnItems.quantity", 0] }
+              ]
+            }
+          }
+        }
+      },
+      { $sort: { totalReturnedAmount: -1 } },
+      { $limit: 20 }
+    ]);
+    console.log("🔸 Step 3: Final Top 20 Grouped:", JSON.stringify(grouped, null, 2));
+
+    // 5. ✅ Return final response
+    res.json(grouped);
+
+  } catch (error) {
+    console.error('❌ Error in getTop20ReturnedItems:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
+
+
 module.exports = {
   addBillsController,
   getBillsController,
@@ -578,4 +770,6 @@ module.exports = {
   addReceiptsController,
   getTotalMonthlyReceipts,
   getCustomCakeSales,
+  getTop20ReturnedItems,
+  getDailyReturnByCategory,
 };

@@ -1,87 +1,87 @@
-// Step 1: Find expired items based on shelfLife, createdAt, and quantity > 0
-var expiredItems = db.items.aggregate([
-  {
-    $lookup: {
-      from: "inventories",
-      let: { itemCode: "$code" },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $and: [
-                { $eq: ["$code", "$$itemCode"] },
-                { $gt: ["$quantity", 0] } // Only items with stock
+    // Step 1: Find expired items based on shelfLife, createdAt, and quantity > 0
+    var expiredItems = db.items.aggregate([
+      {
+        $lookup: {
+          from: "inventories",
+          let: { itemCode: "$code" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$code", "$$itemCode"] },
+                    { $gt: ["$quantity", 0] } // Only items with stock
+                  ]
+                }
+              }
+            }
+          ],
+          as: "inventoryDetails"
+        }
+      },
+      { $unwind: "$inventoryDetails" },
+      {
+        $addFields: {
+          createdAtDate: { $toDate: "$inventoryDetails.createdAt" },
+          shelfLifeDate: {
+            $toDate: {
+              $add: [
+                { $toLong: "$inventoryDetails.createdAt" },
+                { $multiply: ["$shelfLife", 86400000] } // shelfLife in ms
               ]
             }
+          },
+          todaysDate: {
+            $dateTrunc: { date: new Date(), unit: "day" }
           }
         }
-      ],
-      as: "inventoryDetails"
-    }
-  },
-  { $unwind: "$inventoryDetails" },
-  {
-    $addFields: {
-      createdAtDate: { $toDate: "$inventoryDetails.createdAt" },
-      shelfLifeDate: {
-        $toDate: {
-          $add: [
-            { $toLong: "$inventoryDetails.createdAt" },
-            { $multiply: ["$shelfLife", 86400000] } // shelfLife in ms
-          ]
+      },
+      {
+        $match: {
+          $expr: {
+            $lt: ["$shelfLifeDate", "$todaysDate"] // Expired check
+          }
         }
       },
-      todaysDate: {
-        $dateTrunc: { date: new Date(), unit: "day" }
+      {
+        $project: {
+          name: 1,
+          code: 1,
+          invoiceDate: "$inventoryDetails.invoiceDate",
+          quantity: "$inventoryDetails.quantity",
+          createdAtDate: 1,
+          shelfLifeDate: 1,
+          todaysDate: 1,
+          _id: 0
+        }
       }
-    }
-  },
-  {
-    $match: {
-      $expr: {
-        $lt: ["$shelfLifeDate", "$todaysDate"] // Expired check
-      }
-    }
-  },
-  {
-    $project: {
-      name: 1,
-      code: 1,
-      invoiceDate: "$inventoryDetails.invoiceDate",
-      quantity: "$inventoryDetails.quantity",
-      createdAtDate: 1,
-      shelfLifeDate: 1,
-      todaysDate: 1,
-      _id: 0
-    }
-  }
-]).toArray();
+    ]).toArray();
 
-// Step 2: Log results and update inventory if needed
-if (expiredItems.length > 0) {
-  print("📋 Expired Items:");
-  expiredItems.forEach(doc => printjson(doc));
+    // Step 2: Log results and update inventory if needed
+    if (expiredItems.length > 0) {
+      print("📋 Expired Items:");
+      expiredItems.forEach(doc => printjson(doc));
 
-  // Build array of update conditions (code + invoiceDate)
-  var updateConditions = expiredItems.map(doc => ({
-    code: doc.code,
-    invoiceDate: doc.invoiceDate
-  }));
+      // Build array of update conditions (code + invoiceDate)
+      var updateConditions = expiredItems.map(doc => ({
+        code: doc.code,
+        invoiceDate: doc.invoiceDate
+      }));
 
-  // Step 3: Perform bulk updates
-  var bulkOps = updateConditions.map(cond => ({
-    updateOne: {
-      filter: {
-        code: cond.code,
-        invoiceDate: cond.invoiceDate,
-        quantity: { $gt: 0 }
-      },
-      update: { $set: { quantity: 0 } }
+      // Step 3: Perform bulk updates
+      var bulkOps = updateConditions.map(cond => ({
+        updateOne: {
+          filter: {
+            code: cond.code,
+            invoiceDate: cond.invoiceDate,
+            quantity: { $gt: 0 }
+          },
+          update: { $set: { quantity: 0 } }
+        }
+      }));
+
+      var updateResult = db.inventories.bulkWrite(bulkOps);
+      print("✅ Updated Inventories:", updateResult.modifiedCount, "documents.");
+    } else {
+      print("✅ No Expired Items Found or No Updates Needed.");
     }
-  }));
-
-  var updateResult = db.inventories.bulkWrite(bulkOps);
-  print("✅ Updated Inventories:", updateResult.modifiedCount, "documents.");
-} else {
-  print("✅ No Expired Items Found or No Updates Needed.");
-}

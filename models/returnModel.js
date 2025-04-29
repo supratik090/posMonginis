@@ -8,9 +8,8 @@ const returnSchema = mongoose.Schema(
     _id: { type: String, required: true }, // Explicitly tell MongoDB that _id is a String
 
     returnDate: {
-      type: String,
-      required: [true],
-       unique: true,
+      type: Date,
+      required: [true]
     },
     creditNote: {
       type: String,

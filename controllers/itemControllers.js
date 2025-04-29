@@ -1,5 +1,6 @@
 const itemModel = require("../models/itemModels");
 const inventoryModel = require("../models/InventoryModels");
+const returnModel = require("../models/InventoryModels");
 const CashBox = require('../models/CashBox');
 const ExpenseModel = require('../models/expenseModel');
 const moment = require("moment-timezone");
@@ -366,6 +367,66 @@ const updateInventory = async (req, res) => {
   }
 };
 
+const getReturns = async (req, res) => {
+  try {
+  const { month } = req.query; // Expecting 'YYYY-MM' format
+
+     console.log("Month"+req.query);
+     console.log(month);
+      // Validate the input date format
+      if (!moment(month, 'YYYY-MM', true).isValid()) {
+        return res.status(400).json({ error: 'Invalid date format. Expected YYYY-MM.' });
+      }
+
+      // Parse the input month
+      const inputDate = moment.tz(month, 'YYYY-MM', 'Asia/Kolkata');
+
+     console.log("Input Date"+inputDate);
+      // Determine the start and end of the month
+      const startOfMonth = inputDate.clone().startOf('month').toDate();
+      const endOfMonth = inputDate.clone().endOf('month').toDate();
+
+      console.log("Start" + startOfMonth + " End of month " + endOfMonth);
+     const expenses = await returnModel.find({
+        returnDate: { $gte: startOfMonth, $lte: endOfMonth },
+      }).sort({ date: -1 });
+
+      console.log("All "+expenses);
+
+            console.log("loop ex");
+
+      expenses.forEach((e) => {
+        console.log("Start");
+      console.log(e);
+       console.log("End");
+      });
+
+
+      const totalExpense = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+
+    console.log("totalExpense "+totalExpense);
+
+      res.status(200).json({
+        month: month,
+        totalExpense,
+        count: expenses.length,
+        expenses,
+      });
+
+    } catch (error) {
+      console.error('Error fetching expenses:', error);
+      res.status(500).json({ message: 'Failed to fetch expenses.' });
+    }
+};
+
+
+
+
+
+
+
+
+
 
 module.exports = {
   getItemController,
@@ -383,6 +444,7 @@ module.exports = {
   addExpense,
   getExpense,
   getTrading,
+  getReturns,
   updateInventory,
 
 };

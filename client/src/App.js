@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AnalyticsPage from "./pages/analyticsPage";
 import TradingPage from "./pages/TradingPage";
+import ReturnsPage from "./pages/ReturnsPage";
 
 function App() {
   return (
@@ -47,6 +48,14 @@ function App() {
                       element={
                         <ProtectedRoute>
                           <TradingPage/>
+                        </ProtectedRoute>
+                      }
+                    />
+          <Route
+                      path="/returns"
+                      element={
+                        <ProtectedRoute>
+                          <ReturnsPage/>
                         </ProtectedRoute>
                       }
                     />

@@ -12,6 +12,7 @@ import {
   UserOutlined,
   PieChartOutlined ,
   StockOutlined,
+  RollbackOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
 import React, { useEffect, useState } from "react";
@@ -101,6 +102,13 @@ const DefaultLayout = ({ children }) => {
                       className={shouldFlashTrading ? "flashing-tab" : ""}
                     >
                       Trading
+                    </Menu.Item>
+            <Menu.Item
+                      key="/returns"
+                      icon={<RollbackOutlined />}
+                      onClick={() => navigate("/returns")}
+                    >
+                      Returns
                     </Menu.Item>
           <Menu.Item
             key="/customers"

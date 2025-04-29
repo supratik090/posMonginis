@@ -3,6 +3,7 @@ const {
   addBillsController,
   getBillsController,
   addReturnsController,
+  getTop20ReturnedItems,
   addCustomer,
   getCustomer,
   updateCustomerNotes,
@@ -12,7 +13,8 @@ const {
   getDailySalesTrend,
   addReceiptsController,
   getTotalMonthlyReceipts,
-  getCustomCakeSales
+  getCustomCakeSales,
+  getDailyReturnByCategory,
 } = require("./../controllers/billsController");
 
 const router = express.Router();
@@ -27,6 +29,10 @@ router.get("/get-bills", getBillsController);
 
 //MEthod - POST
 router.post("/add-return", addReturnsController);
+
+//MEthod - GET
+router.get("/get-top20-returns", getTop20ReturnedItems);
+router.get("/total-return-category", getDailyReturnByCategory);
 
 //MEthod - POST
 router.post("/add-ros-receipts", addReceiptsController);
