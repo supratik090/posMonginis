@@ -623,7 +623,8 @@ const getDailyReturnByCategory = async (req, res) => {
       {
         $group: {
           _id: { day: { $dayOfMonth: '$returnDate' } },
-          totalAmount: { $sum: { $ifNull: ['$totalAmount', 0] } } // Sum the totalAmount field directly
+          totalAmount: { $sum: { $ifNull: ['$totalAmount', 0] } },
+           deductedAmount: { $sum: { $ifNull: ['$deductedAmount', 0] } }// Sum the totalAmount field directly
         }
       },
       {
@@ -633,7 +634,8 @@ const getDailyReturnByCategory = async (req, res) => {
         $project: {
           _id: 0,
           day: '$_id.day',
-          totalAmount: 1
+          totalAmount: 1,
+           deductedAmount: 1
         }
       }
     ]);

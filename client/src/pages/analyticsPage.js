@@ -28,6 +28,7 @@ const Adashboard = () => {
   const [categoryData, setCategoryData] = useState([]);
     const [returnByCategory, setReturnByCategory] = useState([]);
       const [totalReturn, setTotalReturn] = useState(0);
+            const [totalDeductedReturn, setTotalDeductedReturn] = useState(0);
   const [topReturns, setTopReturns] = useState([]);
 
  const [chartMetricReturn, setChartMetricReturn] = useState("totalReturnedAmount");
@@ -64,6 +65,7 @@ const Adashboard = () => {
             const returnData = Array.isArray(returnResponse.data) ? returnResponse.data : [];
             setReturnByCategory(returnData);
           setTotalReturn(returnData.reduce((sum, entry) => sum + entry.totalAmount, 0));
+          setTotalDeductedReturn(returnData.reduce((sum, entry) => sum + entry.deductedAmount, 0));
    setSelectedReturnCategories(returnData.map((category) => category.category));
 
           const formattedReturn = returnData.map(item => ({
@@ -116,6 +118,7 @@ const Adashboard = () => {
       setReturnByCategory([]);
       setTotalReturn(0);
       setReturnCategoryData([]);
+      setTotalDeductedReturn([]);
 
 
     }
@@ -330,6 +333,17 @@ const CustomTooltip = ({ active, payload, label }) => {
                       <Statistic
                         title="Total Returns"
                         value={totalReturn}
+                        precision={2}
+                        valueStyle={{ color: "#3f8600" }}
+                        prefix="₹"
+                      />
+                    </Card>
+                  </Col>
+                <Col span={8}>
+                    <Card>
+                      <Statistic
+                        title="Deducted Returns"
+                        value={totalDeductedReturn}
                         precision={2}
                         valueStyle={{ color: "#3f8600" }}
                         prefix="₹"
@@ -551,11 +565,11 @@ const CustomTooltip = ({ active, payload, label }) => {
                    />
                    <Bar
                      dataKey={chartMetricReturn} // Use the selected metric for dataKey
-                     fill={chartMetricReturn === "totalSold" ? "#ADD8E6" : "#8884d8"} // Adjusted for metric
+                     fill={chartMetricReturn === "totalReturnedAmount" ? "#ADD8E6" : "#8884d8"} // Adjusted for metric
                      name={
-                       chartMetricReturn === "totalSales"
-                         ? "Total Sales (₹)"
-                         : "Total Quantity Sold"
+                       chartMetricReturn === "totalReturnedAmount"
+                         ? "Total Return (₹)"
+                         : "Total Quantity Return"
                      }
                      barSize={20}
                    />
