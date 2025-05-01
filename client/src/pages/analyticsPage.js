@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { DatePicker, Card, Col, Row, Statistic, Typography, Select, Empty, Table, Panel } from 'antd';
+import { DatePicker, Card, Col, Row, Statistic, Typography, Select, Empty, Table, Panel,Collapse     } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
 import DefaultLayout from "../components/DefaultLayout";
@@ -128,14 +128,14 @@ const Adashboard = () => {
     .sort((a, b) => b[chartMetric] - a[chartMetric]) // Sort descending based on selected metric
     .map((product) => ({
       ...product,
-      displayName: `${product._id} (Qty: ${product.totalSold})`, // Y-axis label
+      displayName: `${product._id}`, // Y-axis label
     }));
 
   const sortedReturns = [...topReturns]
     .sort((a, b) => b[chartMetricReturn] - a[chartMetricReturn]) // Sort descending based on selected metric
     .map((product) => ({
       ...product,
-      displayName: `${product.name} (Qty: ${product.totalReturnedAmount})`, // Y-axis label
+      displayName: `${product.name}`, // Y-axis label
     }));
 
   useEffect(() => {
@@ -444,19 +444,22 @@ const CustomTooltip = ({ active, payload, label }) => {
              </Row>
 
              {topProducts.length > 0 ? (
-               <ResponsiveContainer width="100%" height={500}>
+               <ResponsiveContainer width="100%" height={sortedProducts.length * 35}>
                  <BarChart
                    data={sortedProducts}
                    layout="vertical"
                    margin={{ left: 200, right: 20, top: 20, bottom: 20 }}
                  >
                    <XAxis type="number" />
-                   <YAxis
-                     dataKey="displayName"
-                     type="category"
-                     width={200}
-                     tick={{ fontSize: 12 }}
-                   />
+ <YAxis
+   dataKey="displayName"
+   type="category"
+   width={250}
+   tick={{ fontSize: 12 }}
+   tickFormatter={(name) =>
+     name.length > 45 ? name.substring(0, 45) + '...' : name
+   }
+ />
                    <Tooltip />
                    <Legend
                      formatter={(value) =>
@@ -480,7 +483,48 @@ const CustomTooltip = ({ active, payload, label }) => {
              )}
            </Card>
          </Col>
+
+
+
        </Row>
+       <Row gutter={16} style={{ marginTop: 20 }}>
+         <Col span={24}>
+           <Card title="Top 20 Products Details">
+       <Collapse style={{ marginTop: 4 }}>
+                  <Collapse.Panel header="Show" key="1">
+                    <Table
+                      dataSource={sortedProducts}
+                      rowKey={(record) => record.code || record.name}
+                      pagination={false}
+                      bordered
+                      size="small"
+                      columns={[
+                        {
+                          title: 'Product Name',
+                          dataIndex: 'displayName',
+                          key: 'name',
+                        },
+                        {
+                          title: 'Quantity Sold',
+                          dataIndex: 'totalSold',
+                          key: 'totalSold',
+                        },
+                        {
+                          title: 'Total Sales (₹)',
+                          dataIndex: 'totalSales',
+                          key: 'totalSales',
+                          render: (value) => value?.toFixed(2),
+                        },
+                      ]}
+                    />
+                  </Collapse.Panel>
+                </Collapse>
+                 </Card>
+                 </Col>
+
+
+
+               </Row>
 
        <Row gutter={16} style={{ marginTop: 20 }}>
                 <Col span={24}>
@@ -544,19 +588,23 @@ const CustomTooltip = ({ active, payload, label }) => {
              </Row>
 
              {topReturns.length > 0 ? (
-               <ResponsiveContainer width="100%" height={500}>
+            <ResponsiveContainer width="100%" height={sortedReturns.length * 35}>
                  <BarChart
                    data={sortedReturns} // Ensure sortedReturns is correctly populated
                    layout="vertical"
                    margin={{ left: 200, right: 20, top: 20, bottom: 20 }}
                  >
                    <XAxis type="number" />
-                   <YAxis
-                     dataKey="name" // Ensure your data contains 'name' as the category name
-                     type="category"
-                     width={200}
-                     tick={{ fontSize: 12 }}
-                   />
+<YAxis
+  dataKey="displayName"
+  type="category"
+  width={250}
+  tick={{ fontSize: 12 }}
+  tickFormatter={(name) =>
+    name.length > 45 ? name.substring(0, 45) + '...' : name
+  }
+/>
+
                    <Tooltip />
                    <Legend
                      formatter={(value) =>
@@ -581,6 +629,45 @@ const CustomTooltip = ({ active, payload, label }) => {
            </Card>
          </Col>
        </Row>
+
+        <Row gutter={16} style={{ marginTop: 20 }}>
+                <Col span={24}>
+                  <Card title="Top 20 Returns Details">
+              <Collapse style={{ marginTop: 4 }}>
+                         <Collapse.Panel header="Show" key="1">
+                           <Table
+                             dataSource={sortedReturns}
+                             rowKey={(record) => record.code || record.name}
+                             pagination={false}
+                             bordered
+                             size="small"
+                             columns={[
+                               {
+                                 title: 'Product Name',
+                                 dataIndex: 'displayName',
+                                 key: 'name',
+                               },
+                               {
+                                 title: 'Quantity Return',
+                                 dataIndex: 'totalReturnedQuantity',
+                                 key: 'totalSold',
+                               },
+                               {
+                                 title: 'Total Returns (₹)',
+                                 dataIndex: 'totalReturnedAmount',
+                                 key: 'totalSales',
+                                 render: (value) => value?.toFixed(2),
+                               },
+                             ]}
+                           />
+                         </Collapse.Panel>
+                       </Collapse>
+                        </Card>
+                        </Col>
+
+
+
+                      </Row>
 
 
        <Row gutter={16} style={{ marginTop: 20 }}>
