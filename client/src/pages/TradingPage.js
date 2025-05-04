@@ -4,6 +4,9 @@ import { Button, Input, Table, Modal, Form, message, DatePicker, Switch, Tabs ,T
 import { EditOutlined } from "@ant-design/icons";
 import DefaultLayout from "../components/DefaultLayout";
 import dayjs from "dayjs";
+import { Collapse } from "antd";
+const { Panel } = Collapse;
+
 
 const { TabPane } = Tabs;
 
@@ -204,6 +207,7 @@ const TradingPage = () => {
         if (!dateB) return 1;
         return dateA - dateB;
       },
+      defaultSortOrder: 'ascend',
     },
     {
       title: "Return Date",
@@ -215,13 +219,16 @@ const TradingPage = () => {
         const today = dayjs();
         const sevenDaysFromNow = today.add(7, 'days');
 
-        if (returnDate.isBefore(today, 'day')) {
-          color = "#f8d7da";
-        } else if (returnDate.isAfter(today, 'day') && returnDate.isBefore(sevenDaysFromNow, 'day')) {
-          color = "#fff3cd";
-        } else if (returnDate.isAfter(sevenDaysFromNow, 'day')) {
-          color = "#d4edda";
-        }
+if (returnDate.isSame(today, 'day')) {
+  color = "#ffeeba"; // 🟡 Highlight for "due today"
+} else if (returnDate.isBefore(today, 'day')) {
+  color = "#f5c6cb"; // 🔴 Overdue
+} else if (returnDate.isAfter(today, 'day') && returnDate.isBefore(sevenDaysFromNow, 'day')) {
+  color = "#ffeeba"; // 🟡 Due soon
+} else if (returnDate.isSame(sevenDaysFromNow, 'day') || returnDate.isAfter(sevenDaysFromNow, 'day')) {
+  color = "#c3e6cb"; // 🟢 Future return
+}
+
 
         return (
           <div style={{ backgroundColor: color, padding: "5px", borderRadius: "4px" }}>
@@ -260,6 +267,118 @@ const TradingPage = () => {
     },
   ];
 
+
+    const columnsReturns = [
+      {
+        title: "Code",
+        dataIndex: "code",
+        sorter: (a, b) => a.code.localeCompare(b.code),
+      },
+      {
+        title: "Name",
+        dataIndex: "itemName",
+        sorter: (a, b) => a.itemName.localeCompare(b.itemName),
+      },
+      {
+        title: "Price",
+        dataIndex: "price",
+        sorter: (a, b) => a.price - b.price,
+      },
+      {
+        title: "Quantity",
+        dataIndex: "quantity",
+        sorter: (a, b) => a.quantity - b.quantity
+      },
+          {
+            title: "Invoice",
+            dataIndex: "invoiceNumber",
+            sorter: (a, b) => a.invoiceNumber.localeCompare(b.invoiceNumber),
+                  render: (text) => {
+                      if (typeof text === "string") {
+                       const cleaned = text.replace(/\s+/g, " ").trim(); // replace all kinds of whitespace
+                            return cleaned.split(" ")[0]; // take only the first segment
+
+                      }
+                      return text;
+                    },
+          },
+      {
+        title: "Invoice Date",
+        dataIndex: "invoiceDate",
+        sorter: (a, b) => {
+          const dateA = a.invoiceDate ? dayjs(a.invoiceDate, ["DD/MM/YYYY", "YYYY-MM-DD"]).toDate() : new Date(0);
+          const dateB = b.invoiceDate ? dayjs(b.invoiceDate, ["DD/MM/YYYY", "YYYY-MM-DD"]).toDate() : new Date(0);
+          return dateA - dateB;
+        },
+        render: (text) => {
+          const date = dayjs(text, ["DD/MM/YYYY", "YYYY-MM-DD"]);
+          return date.isValid() ? date.format("YYYY-MM-DD") : "-";
+        }
+      },
+      {
+        title: "Manufactured Date",
+        dataIndex: "manufacturedDt",
+   render: (_, record) => {
+       const manufacturedDate = record.manufacturedDt;
+
+    // Apply style if manufactured date is undefined
+       const style = (manufacturedDate === undefined || manufacturedDate === null) ? { backgroundColor: '#f8d7da' } : {};
+
+       return (
+         <div style={style}>
+           {manufacturedDate ? dayjs(manufacturedDate).format("YYYY-MM-DD") : "--"}
+         </div>
+       );
+     },
+        sorter: (a, b) => {
+          const dateA = a.manufacturedDt ? new Date(a.manufacturedDt) : null;
+          const dateB = b.manufacturedDt ? new Date(b.manufacturedDt) : null;
+          if (!dateA && !dateB) return 0;
+          if (!dateA) return -1;
+          if (!dateB) return 1;
+          return dateA - dateB;
+        },
+      },
+      {
+        title: "Return Date",
+        dataIndex: "returnDate",
+        render: (text) => {
+          const returnDate = dayjs(text);
+
+          let color = "#fff";
+          const today = dayjs();
+          const sevenDaysFromNow = today.add(7, 'days');
+if (returnDate.isSame(today, 'day')) {
+  color = "#ffeeba"; // 🟡 Highlight for "due today"
+} else if (returnDate.isBefore(today, 'day')) {
+  color = "#f5c6cb"; // 🔴 Overdue
+} else if (returnDate.isAfter(today, 'day') && returnDate.isBefore(sevenDaysFromNow, 'day')) {
+  color = "#ffeeba"; // 🟡 Due soon
+} else if (returnDate.isSame(sevenDaysFromNow, 'day') || returnDate.isAfter(sevenDaysFromNow, 'day')) {
+  color = "#c3e6cb"; // 🟢 Future return
+}
+
+
+          return (
+            <div style={{ backgroundColor: color, padding: "5px", borderRadius: "4px" }}>
+              {returnDate.isValid() ? returnDate.format("YYYY-MM-DD") : "-"}
+            </div>
+          );
+        },
+        defaultSortOrder: 'ascend',
+        sorter: (a, b) => {
+          const dateA = a.returnDate ? new Date(a.returnDate) : new Date(0);
+          const dateB = b.returnDate ? new Date(b.returnDate) : new Date(0);
+          return dateA - dateB;
+        },
+      },
+      {
+        title: "Shelf Life (days)",
+        dataIndex: "shelfLife",
+        sorter: (a, b) => a.shelfLife - b.shelfLife,
+      },
+    ];
+
   // Function to determine the row class based on return date
   const getRowClass = (record) => {
     const returnDate = new Date(record.returnDate);
@@ -289,20 +408,55 @@ const TradingPage = () => {
 
   return (
     <DefaultLayout>
-      <Tabs defaultActiveKey="1" onChange={handleTabChange}>
+      <Collapse defaultActiveKey={["2"]} accordion>
 
-          <TabPane
-            key="1"
-            tab={
-              hasMissingManufacturedDate ? (
-                <Tooltip title="Some items are missing Manufactured Date. Please update.">
-                  <span className="tab-alert">Edit Dates ⚠️</span>
-                </Tooltip>
-              ) : (
-                "Edit Dates"
-              )
-            }
-          >
+
+        {/* Returns Section */}
+        <Panel
+          header={
+            hasUpcomingReturns ? (
+              <Tooltip title="Some items are due for return soon. Please review.">
+                <span className="tab-alert">Upcoming Returns ⚠️</span>
+              </Tooltip>
+            ) : (
+              "Upcoming Returns"
+            )
+          }
+          key="2"
+        >
+          <h1>Items Near or Past Return Date</h1>
+          <div style={{ overflowX: "auto" }}>
+            <Table
+              columns={columnsReturns   }
+              dataSource={data
+                .filter((item) => {
+                  const returnDt = item.returnDate ? dayjs(item.returnDate) : null;
+                  return returnDt && returnDt.isBefore(dayjs().add(12, "day"), "day");
+                })
+                .sort((a, b) => new Date(a.returnDate) - new Date(b.returnDate))
+              }
+              rowKey="_id"
+              bordered
+              pagination={{ pageSize: 10 }}
+              rowClassName={(record) => getRowClass(record)}
+              scroll={{ x: "max-content" }}
+            />
+          </div>
+        </Panel>
+
+        {/* Edit Dates Section */}
+        <Panel
+          header={
+            hasMissingManufacturedDate ? (
+              <Tooltip title="Some items are missing Manufactured Date. Please update.">
+                <span className="tab-alert">Edit Dates ⚠️</span>
+              </Tooltip>
+            ) : (
+              "Edit Dates"
+            )
+          }
+          key="1"
+        >
           <div className="d-flex justify-content-between">
             <h1>Trading Inventory</h1>
             <Input.Search
@@ -313,49 +467,22 @@ const TradingPage = () => {
             />
           </div>
 
-<div style={{ overflowX: "auto" }}>
-          <Table
-            columns={columns}
-            dataSource={filteredData}
-            rowKey="_id"
-            bordered
-            pagination={{ pageSize: 10 }}
-            rowClassName={(record) => getRowClass(record)}
-            scroll={{ x: "max-content" }}
-            onChange={handleTableChange} // Handling table change including sorting
-          />
+          <div style={{ overflowX: "auto" }}>
+            <Table
+              columns={columns}
+              dataSource={filteredData} // Unfiltered for edit section
+              rowKey="_id"
+              bordered
+              pagination={{ pageSize: 10 }}
+              rowClassName={(record) => getRowClass(record)}
+              scroll={{ x: "max-content" }}
+              onChange={handleTableChange}
+            />
           </div>
+        </Panel>
 
-        </TabPane>
+      </Collapse>
 
-        <TabPane
-          key="2"
-          tab={
-            hasUpcomingReturns ? (
-              <Tooltip title="Some items are due for return soon. Please review.">
-                <span className="tab-alert">View Returns ⚠️</span>
-              </Tooltip>
-            ) : (
-              "View Returns"
-            )
-          }
-        >
-
-          <div className="d-flex justify-content-between">
-            <h1>Past Return Dates</h1>
-          </div>
-<div style={{ overflowX: "auto" }}>
-          <Table
-            columns={columns}
-            dataSource={filteredData}
-            rowKey="_id"
-            bordered
-            pagination={{ pageSize: 10 }}
-            rowClassName={(record) => getRowClass(record)}
-          />
-          </div>
-        </TabPane>
-      </Tabs>
 
       {popupModal && (
         <Modal
