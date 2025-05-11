@@ -86,7 +86,7 @@ const addBillsController = async (req, res) => {
          for (const cartItem of cartItems) {
            let remainingQty = cartItem.quantity; // quantity sold for this item
            // Find all inventory records for the code, ordered by oldest first
-           const inventories = await inventoryModel.find({ code: cartItem.code, quantity: { $gt: 0 } }).sort({ createdAt: 1 });
+           const inventories = await inventoryModel.find({ code: cartItem.code, quantity: { $gt: 0 },isActive: true }).sort({ createdAt: 1 });
 
            // Iterate over inventory records and reduce quantity FIFO
            for (let inv of inventories) {

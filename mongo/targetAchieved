@@ -1,0 +1,144 @@
+db.bills.aggregate([
+  {
+    $match: {
+      date: {
+        $gte: new Date("2025-04-01T00:00:00.000Z"),
+        $lt: new Date("2025-05-01T00:00:00.000Z")
+      }
+    }
+  },
+  {
+    $addFields: {
+      istDate: {
+        $dateAdd: {
+          startDate: {
+            $dateAdd: {
+              startDate: "$date",
+              unit: "hour",
+              amount: 5
+            }
+          },
+          unit: "minute",
+          amount: 30
+        }
+      }
+    }
+  },
+  {
+    $addFields: {
+      isMorning: {
+        $or: [
+          { $lt: [{ $hour: "$istDate" }, 15] },
+          {
+            $and: [
+              { $eq: [{ $hour: "$istDate" }, 15] },
+              { $lt: [{ $minute: "$istDate" }, 30] }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    $group: {
+      _id: {
+        date: {
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$istDate"
+          }
+        }
+      },
+      morningSales: {
+        $sum: {
+          $cond: ["$isMorning", "$totalAmount", 0]
+        }
+      },
+      eveningSales: {
+        $sum: {
+          $cond: [{ $not: ["$isMorning"] }, "$totalAmount", 0]
+        }
+      },
+      totalSales: { $sum: "$totalAmount" },
+      billCount: { $sum: 1 }
+    }
+  },
+  {
+    $match: {
+      $or: [
+        { morningSales: { $gt: 4000 } },
+        { eveningSales: { $gt: 12000 } }
+      ]
+    }
+  },
+  {
+    $sort: { "_id.date": 1 }
+  }
+]);
+
+
+
+
+
+
+
+
+
+[
+  {
+    _id: { date: '2025-04-03' },
+    morningSales: 2342,
+    eveningSales: 12794,
+    totalSales: 15136,
+    billCount: 70
+  },
+  {
+    _id: { date: '2025-04-08' },
+    morningSales: 5999,
+    eveningSales: 6020,
+    totalSales: 12019,
+    billCount: 60
+  },
+  {
+    _id: { date: '2025-04-09' },
+    morningSales: 2950,
+    eveningSales: 12072,
+    totalSales: 15022,
+    billCount: 64
+  },
+  {
+    _id: { date: '2025-04-12' },
+    morningSales: 4689,
+    eveningSales: 8164,
+    totalSales: 12853,
+    billCount: 59
+  },
+  {
+    _id: { date: '2025-04-15' },
+    morningSales: 919,
+    eveningSales: 13919,
+    totalSales: 14838,
+    billCount: 53
+  },
+  {
+    _id: { date: '2025-04-20' },
+    morningSales: 4137,
+    eveningSales: 8870,
+    totalSales: 13007,
+    billCount: 64
+  },
+  {
+    _id: { date: '2025-04-21' },
+    morningSales: 4048,
+    eveningSales: 8041,
+    totalSales: 12089,
+    billCount: 61
+  },
+  {
+    _id: { date: '2025-04-26' },
+    morningSales: 3494,
+    eveningSales: 12059,
+    totalSales: 15553,
+    billCount: 63
+  }
+
