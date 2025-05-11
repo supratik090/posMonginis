@@ -144,6 +144,8 @@ const CashBox = () => {
       ? "red"
       : "inherit";
 
+
+
   return (
     <DefaultLayout>
       <Row gutter={16} style={{ marginBottom: 20 }}>
@@ -181,6 +183,8 @@ const CashBox = () => {
       <Button type="dashed" onClick={() => setIsExpenseModalVisible(true)}>
         Add Expense
       </Button>
+
+
 
       {/* Add Balance Modal */}
       <Modal
@@ -317,6 +321,9 @@ const CashBox = () => {
           />
         </Panel>
       </Collapse>
+
+
+
     </DefaultLayout>
   );
 };

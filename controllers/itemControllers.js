@@ -308,11 +308,15 @@ const getTrading = async (req, res) => {
     // Fetch trading items from the itemModel with category 'Trading'
     const tradingItems = await itemModel.find({ category: 'Trading' });
 
+// Codes to be removed
+const codesToRemove = ["OB002", "OP043", "OB008", "OB004", "OB012","ID024","I0953","ID040"];
+
+
     // Extract the item codes from the tradingItems
-    const tradingCodes = tradingItems.map(i => i.code);
+    const tradingCodes =tradingItems.map(i => i.code).filter(code => !codesToRemove.includes(code));
 
     // Fetch the inventory items where the code matches the tradingCodes
-    const inventory = await inventoryModel.find({ code: { $in: tradingCodes } ,isActive: true, quantity: { $gt: 0 } });
+    const inventory = await inventoryModel.find({ code: { $in: tradingCodes } ,isActive: true });
 
     // Fetch the corresponding item data for each inventory item
     const inventoryWithDetails = await Promise.all(inventory.map(async (invItem) => {

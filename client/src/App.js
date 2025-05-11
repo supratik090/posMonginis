@@ -12,6 +12,7 @@ import Register from "./pages/Register";
 import AnalyticsPage from "./pages/analyticsPage";
 import TradingPage from "./pages/TradingPage";
 import ReturnsPage from "./pages/ReturnsPage";
+import Price from "./pages/Price";
 
 function App() {
   return (
@@ -100,7 +101,14 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path="/price"
+            element={
+              <ProtectedRoute>
+                <Price />
+              </ProtectedRoute>
+            }
+          />
                     <Route
                       path="/analytics"
                       element={

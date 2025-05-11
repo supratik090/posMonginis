@@ -650,6 +650,11 @@ const getDailyReturnByCategory = async (req, res) => {
 };
 
 
+const getTodaysReturns =   async (req, res) => {
+
+
+}
+
 const getTop20ReturnedItems = async (req, res) => {
   try {
     const { category, month } = req.query;

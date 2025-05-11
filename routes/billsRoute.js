@@ -15,6 +15,7 @@ const {
   getTotalMonthlyReceipts,
   getCustomCakeSales,
   getDailyReturnByCategory,
+  getTodaysReturns,
 } = require("./../controllers/billsController");
 
 const router = express.Router();
@@ -33,6 +34,7 @@ router.post("/add-return", addReturnsController);
 //MEthod - GET
 router.get("/get-top20-returns", getTop20ReturnedItems);
 router.get("/total-return-category", getDailyReturnByCategory);
+router.get("/get-todays-returns", getTodaysReturns);
 
 //MEthod - POST
 router.post("/add-ros-receipts", addReceiptsController);
@@ -61,6 +63,7 @@ router.get("/total-sales-customCake", getCustomCakeSales);
 router.get("/top-products",getTop20SalesItems);
 
 router.get("/5minLineChart",getDailySalesTrend);
+
 
 
 module.exports = router;

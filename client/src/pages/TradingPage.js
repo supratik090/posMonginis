@@ -181,7 +181,7 @@ const TradingPage = () => {
       },
       render: (text) => {
         const date = dayjs(text, ["DD/MM/YYYY", "YYYY-MM-DD"]);
-        return date.isValid() ? date.format("YYYY-MM-DD") : "-";
+        return date.isValid() ? date.format("DD-MM-YYYY") : "-";
       }
     },
     {
@@ -195,7 +195,7 @@ const TradingPage = () => {
 
      return (
        <div style={style}>
-         {manufacturedDate ? dayjs(manufacturedDate).format("YYYY-MM-DD") : "--"}
+         {manufacturedDate ? dayjs(manufacturedDate).format("DD-MM-YYYY") : "--"}
        </div>
      );
    },
@@ -232,7 +232,7 @@ if (returnDate.isSame(today, 'day')) {
 
         return (
           <div style={{ backgroundColor: color, padding: "5px", borderRadius: "4px" }}>
-            {returnDate.isValid() ? returnDate.format("YYYY-MM-DD") : "-"}
+            {returnDate.isValid() ? returnDate.format("DD-MM-YYYY") : "-"}
           </div>
         );
       },
