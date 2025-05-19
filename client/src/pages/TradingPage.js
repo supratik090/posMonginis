@@ -4,6 +4,9 @@ import { Button, Input, Table, Modal, Form, message, DatePicker, Switch, Tabs ,T
 import { EditOutlined } from "@ant-design/icons";
 import DefaultLayout from "../components/DefaultLayout";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 import { Collapse } from "antd";
 const { Panel } = Collapse;
 
@@ -148,16 +151,6 @@ const TradingPage = () => {
       dataIndex: "itemName",
       sorter: (a, b) => a.itemName.localeCompare(b.itemName),
     },
-    {
-      title: "Price",
-      dataIndex: "price",
-      sorter: (a, b) => a.price - b.price,
-    },
-    {
-      title: "Quantity",
-      dataIndex: "quantity",
-      sorter: (a, b) => a.quantity - b.quantity
-    },
         {
           title: "Invoice",
           dataIndex: "invoiceNumber",
@@ -195,7 +188,7 @@ const TradingPage = () => {
 
      return (
        <div style={style}>
-         {manufacturedDate ? dayjs(manufacturedDate).format("DD-MM-YYYY") : "--"}
+         {manufacturedDate ? dayjs.utc(manufacturedDate).add(1, "day").format("DD-MM-YYYY") : "--"}
        </div>
      );
    },
@@ -217,10 +210,10 @@ const TradingPage = () => {
 
         let color = "#fff";
         const today = dayjs();
-        const sevenDaysFromNow = today.add(7, 'days');
+        const sevenDaysFromNow = today.add(3, 'days');
 
 if (returnDate.isSame(today, 'day')) {
-  color = "#ffeeba"; // 🟡 Highlight for "due today"
+  color = "#CD001A";
 } else if (returnDate.isBefore(today, 'day')) {
   color = "#f5c6cb"; // 🔴 Overdue
 } else if (returnDate.isAfter(today, 'day') && returnDate.isBefore(sevenDaysFromNow, 'day')) {
@@ -247,6 +240,17 @@ if (returnDate.isSame(today, 'day')) {
       dataIndex: "shelfLife",
       sorter: (a, b) => a.shelfLife - b.shelfLife,
     },
+      {
+          title: "Price",
+          dataIndex: "price",
+          sorter: (a, b) => a.price - b.price,
+        },
+        {
+          title: "Quantity",
+          dataIndex: "quantity",
+          sorter: (a, b) => a.quantity - b.quantity
+        },
+
     {
       title: "Active",
       dataIndex: "isActive",
@@ -312,8 +316,9 @@ if (returnDate.isSame(today, 'day')) {
         },
         render: (text) => {
           const date = dayjs(text, ["DD/MM/YYYY", "YYYY-MM-DD"]);
-          return date.isValid() ? date.format("YYYY-MM-DD") : "-";
-        }
+          return date.isValid() ? date.format("DD-MM-YYYY") : "-";
+        },
+
       },
       {
         title: "Manufactured Date",
@@ -326,7 +331,7 @@ if (returnDate.isSame(today, 'day')) {
 
        return (
          <div style={style}>
-           {manufacturedDate ? dayjs(manufacturedDate).format("YYYY-MM-DD") : "--"}
+           {manufacturedDate ? dayjs.utc(manufacturedDate).add(1, "day").format("DD-MM-YYYY") : "--"}
          </div>
        );
      },
@@ -349,7 +354,7 @@ if (returnDate.isSame(today, 'day')) {
           const today = dayjs();
           const sevenDaysFromNow = today.add(7, 'days');
 if (returnDate.isSame(today, 'day')) {
-  color = "#ffeeba"; // 🟡 Highlight for "due today"
+  color = "#CD001A"; // 🟡 Highlight for "due today"
 } else if (returnDate.isBefore(today, 'day')) {
   color = "#f5c6cb"; // 🔴 Overdue
 } else if (returnDate.isAfter(today, 'day') && returnDate.isBefore(sevenDaysFromNow, 'day')) {
@@ -361,7 +366,7 @@ if (returnDate.isSame(today, 'day')) {
 
           return (
             <div style={{ backgroundColor: color, padding: "5px", borderRadius: "4px" }}>
-              {returnDate.isValid() ? returnDate.format("YYYY-MM-DD") : "-"}
+              {returnDate.isValid() ? returnDate.format("DD-MM-YYYY") : "-"}
             </div>
           );
         },
@@ -388,7 +393,7 @@ if (returnDate.isSame(today, 'day')) {
 
     if (diffInDays < 0) {
       return "past-return";
-    } else if (diffInDays <= 7) {
+    } else if (diffInDays <= 3) {
       return "near-return";
     } else {
       return "future-return";
@@ -431,7 +436,7 @@ if (returnDate.isSame(today, 'day')) {
               dataSource={data
                 .filter((item) => {
                   const returnDt = item.returnDate ? dayjs(item.returnDate) : null;
-                  return returnDt && returnDt.isBefore(dayjs().add(12, "day"), "day");
+                  return returnDt && returnDt.isBefore(dayjs().add(10, "day"), "day");
                 })
                 .sort((a, b) => new Date(a.returnDate) - new Date(b.returnDate))
               }
@@ -452,7 +457,7 @@ if (returnDate.isSame(today, 'day')) {
                 <span className="tab-alert">Edit Dates ⚠️</span>
               </Tooltip>
             ) : (
-              "Edit Dates"
+               <h4 >Edit Dates</h4>
             )
           }
           key="1"
@@ -497,8 +502,8 @@ if (returnDate.isSame(today, 'day')) {
           <Form
             layout="vertical"
             initialValues={{
-              manufacturedDt: updatedInventory.manufacturedDt,
-              returnDate: updatedInventory.returnDate,
+              manufacturedDt: dayjs("2025-01-01"),
+              returnDate: dayjs("2025-01-01"),
               isActive: updatedInventory.isActive,
             }}
             onFinish={() => handleSave(editingRow)}
@@ -515,6 +520,7 @@ if (returnDate.isSame(today, 'day')) {
             >
               <DatePicker
                 value={updatedInventory.manufacturedDt}
+                format="DD-MM-YYYY"
                 onChange={(date) => {
                   const newReturnDate = date && updatedInventory.shelfLife
                     ? date.clone().add(updatedInventory.shelfLife, "day")
@@ -532,6 +538,7 @@ if (returnDate.isSame(today, 'day')) {
             <Form.Item name="returnDate" label="Return Date">
               <DatePicker
                 value={updatedInventory.returnDate}
+                format="DD-MM-YYYY"
                 onChange={(date) =>
                   setUpdatedInventory((prev) => ({ ...prev, returnDate: date }))
                 }
