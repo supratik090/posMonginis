@@ -5,11 +5,9 @@ import { EditOutlined } from "@ant-design/icons";
 import DefaultLayout from "../components/DefaultLayout";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-
-dayjs.extend(utc);
 import { Collapse } from "antd";
 const { Panel } = Collapse;
-
+dayjs.extend(utc);
 
 const { TabPane } = Tabs;
 
