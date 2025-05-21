@@ -1,11 +1,22 @@
-db.bills.deleteOne({_id:ObjectId('68061ab6e91a54b8354adfec')})
+db.bills.deleteOne({_id:ObjectId('6820da825d8020c66117aabf')})
 
 
 
-db.inventories.find({
-  createdAt: { $gt: ISODate('2025-02-16T15:10:27.488Z') }
+db.inventories.insertOne({
+  code: 'OC031',
+  invoiceNumber: 'MUM2526/676             Invoice',
+  invoiceDate: '30/03/2025',
+  price: 350,
+  quantity: 0,
+  returnDate: ISODate('2025-06-20T15:44:25.869Z'),
+  createdAt: ISODate('2025-04-03T15:44:25.871Z'),
+  updatedAt: ISODate('2025-04-03T15:47:23.875Z'),
+  isActive: true
 });
 
-db.inventories.deleteMany({
-  createdAt: { $gt: ISODate('2025-03-22T00:10:27.488Z') }
-});
+
+
+db.inventories.updateOne(
+  { _id: ObjectId('67e944a7371ebb0087c9fd77') },
+  { $set: { quantity: 1, isActive: true } }
+);
