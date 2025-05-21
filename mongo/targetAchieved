@@ -2,8 +2,8 @@ db.bills.aggregate([
   {
     $match: {
       date: {
-        $gte: new Date("2025-04-01T00:00:00.000Z"),
-        $lt: new Date("2025-05-01T00:00:00.000Z")
+        $gte: new Date("2025-03-01T00:00:00.000Z"),
+        $lt: new Date("2025-04-01T00:00:00.000Z")
       }
     }
   },
