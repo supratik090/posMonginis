@@ -30,6 +30,9 @@ const CashBox = () => {
   const [isStartOfDay, setIsStartOfDay] = useState(false);
   const [todaySummary, setTodaySummary] = useState({ totalCash: 0, totalBills: 0 });
 
+
+
+
   const getAllBalances = async () => {
     try {
       const { data } = await axios.get("/api/items/get-balance");
@@ -73,6 +76,11 @@ const CashBox = () => {
       (values.rs100 || 0) * 100 +
       (values.rs50 || 0) * 50;
 
+      const calculatedExcess =
+          isStartOfDay || startOfDayBalance.total === 0
+            ? 0
+            : (total - startOfDayBalance.total) - todaySummary.totalCash;
+
     const payload = {
       ...values,
       total,
@@ -80,6 +88,7 @@ const CashBox = () => {
       note: values.note || "0",
       isStartOfDay,
       time: moment().tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss"),
+      excess: calculatedExcess,
     };
 
     try {
@@ -315,6 +324,15 @@ const CashBox = () => {
                 dataIndex: "isStartOfDay",
                 render: (value) => (value ? "Yes" : "No"),
               },
+              {
+                  title: "Excess / Short",
+                  dataIndex: "excess",
+                  render: (value) => (
+                    <span style={{ color: Math.abs(value) > 300 ? "red" : "inherit" }}>
+                      {value}
+                    </span>
+                  ),
+                },
             ]}
             rowKey="_id"
             style={{ marginTop: 10 }}

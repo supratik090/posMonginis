@@ -6,6 +6,7 @@ const cashBoxSchema = new mongoose.Schema({
   rs200: { type: Number, required: false },
   rs100: { type: Number, required: false },
   rs50: { type: Number, required: false },
+  excess: { type: Number, required: false },
   total: { type: Number, required: true },
   userName: { type: String, required: true },
   notes: { type: String, required: false },
