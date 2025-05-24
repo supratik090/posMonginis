@@ -779,4 +779,5 @@ module.exports = {
   getCustomCakeSales,
   getTop20ReturnedItems,
   getDailyReturnByCategory,
+  getTodaysReturns,
 };
