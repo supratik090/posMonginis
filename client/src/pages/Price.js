@@ -66,7 +66,7 @@ const priceTable = [
 
 
 
-     { flavour: "Rectangle Cake", shape: "Pineapple", weight: "1Kg", price: 700 },
+          { flavour: "Rectangle Cake", shape: "Pineapple", weight: "1Kg", price: 700 },
          { flavour: "Rectangle Cake", shape: "Black Forest", weight: "1Kg", price: 780 },
          { flavour: "Rectangle Cake", shape: "Alpine Choco", weight: "1kg", price: 780 },
          { flavour: "Rectangle Cake", shape: "Classic Truffle", weight: "1kg", price: 700 },
@@ -74,6 +74,14 @@ const priceTable = [
          { flavour: "Rectangle Cake", shape: "Butter scotch Caremello", weight: "1kg", price: 780 },
          { flavour: "Rectangle Cake", shape: "Choco overload", weight: "1kg", price: 800 },
          { flavour: "Rectangle Cake", shape: "Choco Bite", weight: "1kg", price: 800 },
+         { flavour: "Rectangle Cake", shape: "Dutch Choco", weight: "1kg", price: 780 },
+          { flavour: "Rectangle Cake", shape: "Devils Delight", weight: "1kg", price: 800 },
+          { flavour: "Rectangle Cake", shape: "Rasmalai", weight: "1kg", price: 1050 },
+          { flavour: "Rectangle Cake", shape: "Mango", weight: "1kg", price: 780 },
+          { flavour: "Rectangle Cake", shape: "Royal Beauty", weight: "1kg", price: 800 },
+          { flavour: "Rectangle Cake", shape: "Blue berry Rush", weight: "1kg", price: 780 },
+
+          { flavour: "Rectangle Cake", shape: "Tiramisu", weight: "1kg", price: 1500 },
 
 
          { flavour: "Round Cake", shape: "Pineapple", weight: "1kg", price: 700 },
@@ -84,6 +92,15 @@ const priceTable = [
          { flavour: "Round Cake", shape: "Butter scotch Caremello", weight: "1kg", price: 780 },
          { flavour: "Round Cake", shape: "Choco overload", weight: "1kg", price: 800 },
          { flavour: "Round Cake", shape: "Choco Bite", weight: "1kg", price: 800 },
+         { flavour: "Round Cake", shape: "Dutch Choco", weight: "1kg", price: 780 },
+
+                 { flavour: "Round Cake", shape: "Devils Delight", weight: "1kg", price: 800 },
+                   { flavour: "Round Cake", shape: "Rasmalai", weight: "1kg", price: 1050 },
+                   { flavour: "Round Cake", shape: "Mango", weight: "1kg", price: 780 },
+                   { flavour: "Round Cake", shape: "Royal Beauty", weight: "1kg", price: 800 },
+                   { flavour: "Round Cake", shape: "Blue berry Rush", weight: "1kg", price: 780 },
+
+              { flavour: "Round Cake", shape: "Tiramisu", weight: "1kg", price: 1500 },
 
 
          { flavour: "Square Cake", shape: "Pineapple", weight: "1kg", price: 700 },
@@ -94,7 +111,14 @@ const priceTable = [
          { flavour: "Square Cake", shape: "Butter scotch Caremello", weight: "1kg", price: 780 },
          { flavour: "Square Cake", shape: "Choco overload", weight: "1kg", price: 800 },
          { flavour: "Square Cake", shape: "Choco Bite", weight: "1kg", price: 800 },
+         { flavour: "Square Cake", shape: "Dutch Choco", weight: "1kg", price: 780 },
 
+                          { flavour: "Square Cake", shape: "Devils Delight", weight: "1kg", price: 800 },
+                            { flavour: "Square Cake", shape: "Rasmalai", weight: "1kg", price: 1050 },
+                            { flavour: "Square Cake", shape: "Mango", weight: "1kg", price: 780 },
+                            { flavour: "Square Cake", shape: "Royal Beauty", weight: "1kg", price: 800 },
+                            { flavour: "Square Cake", shape: "Blue berry Rush", weight: "1kg", price: 780 },
+          { flavour: "Square Cake", shape: "Tiramisu", weight: "1kg", price: 1500 },
 
    ];
 

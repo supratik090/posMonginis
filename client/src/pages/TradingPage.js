@@ -13,6 +13,7 @@ const { TabPane } = Tabs;
 
 const TradingPage = () => {
   const [data, setData] = useState([]);
+  const [newItems, setNewItems] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [editingRow, setEditingRow] = useState(null);
   const [searchText, setSearchText] = useState("");
@@ -82,6 +83,10 @@ const TradingPage = () => {
 
       setData(sorted);
       setFilteredData(sorted);
+ const filteredNewItems = sorted.filter(item => item.manufacturedDt === undefined ) ;
+
+
+        setNewItems(filteredNewItems);
     } catch (err) {
       message.error("Failed to fetch trading inventory");
     }
@@ -419,10 +424,10 @@ if (returnDate.isSame(today, 'day')) {
           header={
             hasUpcomingReturns ? (
               <Tooltip title="Some items are due for return soon. Please review.">
-                <span className="tab-alert">Upcoming Returns ⚠️</span>
+                <h4 className="tab-alert">Upcoming Returns ⚠️</h4>
               </Tooltip>
             ) : (
-              "Upcoming Returns"
+              <h4>"Upcoming Returns"</h4>
             )
           }
           key="2"
@@ -447,16 +452,48 @@ if (returnDate.isSame(today, 'day')) {
           </div>
         </Panel>
 
+         <Panel
+                  header={
+                    hasMissingManufacturedDate ? (
+                      <Tooltip title="Some items are missing Manufactured Date. Please update.">
+                        <h4 className="tab-alert" >New Items ⚠️</h4>
+                      </Tooltip>
+                    ) : (
+                       <h4 >New Items</h4>
+                    )
+                  }
+                  key="1"
+                >
+                  <div className="d-flex justify-content-between">
+                    <h1>Trading Inventory</h1>
+                    <Input.Search
+                      placeholder="Search"
+                      value={searchText}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      style={{ width: 800 }}
+                    />
+                  </div>
+
+                  <div style={{ overflowX: "auto" }}>
+                    <Table
+                      columns={columns}
+                      dataSource={newItems} // Unfiltered for edit section
+                      rowKey="_id"
+                      bordered
+                      pagination={{ pageSize: 10 }}
+                      rowClassName={(record) => getRowClass(record)}
+                      scroll={{ x: "max-content" }}
+                      onChange={handleTableChange}
+                    />
+                  </div>
+                </Panel>
+
         {/* Edit Dates Section */}
         <Panel
           header={
-            hasMissingManufacturedDate ? (
-              <Tooltip title="Some items are missing Manufactured Date. Please update.">
-                <span className="tab-alert">Edit Dates ⚠️</span>
-              </Tooltip>
-            ) : (
-               <h4 >Edit Dates</h4>
-            )
+
+               <h4 >Edit Items</h4>
+
           }
           key="1"
         >
