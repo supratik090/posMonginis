@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { DatePicker, Card, Col, Row, Statistic, Typography, Select, Empty, Table, Panel,Collapse     } from 'antd';
+import { DatePicker, Card, Col, Row, Statistic, Typography, Select, Empty, Table, Panel,Collapse,Button     } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
 import DefaultLayout from "../components/DefaultLayout";
@@ -254,6 +254,23 @@ const CustomTooltip = ({ active, payload, label }) => {
 
   const categoryColors = ["#0D47A1", "#1976D2", "#42A5F5", "#00ACC1", "#00897B", "#43A047", "#66BB6A", "#9CCC65", "#2E7D32"];
 
+  const totalSalesTableColumns = [
+    {
+      title: 'Date',
+      dataIndex: 'day',
+      key: 'day',
+    },
+    {
+      title: 'Total Sales (₹)',
+      dataIndex: 'totalSales',
+      key: 'totalSales',
+      render: (value) => `₹${value.toFixed(2)}`,
+    },
+  ];
+
+const [showTable, setShowTable] = useState(false);
+
+
  return (
    <DefaultLayout>
      <div>
@@ -407,7 +424,24 @@ const CustomTooltip = ({ active, payload, label }) => {
                    />
                  ))}
                </BarChart>
+
              </ResponsiveContainer>
+             <Button
+               type="primary"
+               onClick={() => setShowTable(!showTable)}
+               style={{ marginTop: 20 }}
+             >
+               {showTable ? "Hide Table" : "Show Daily Sales Table"}
+             </Button>
+{showTable && (
+                            <Table
+                              columns={totalSalesTableColumns}
+                              dataSource={transformedChartData}
+                              rowKey="day"
+                              pagination={false}
+                              style={{ marginTop: 30 }}
+                            />
+                            )}
            </Card>
          </Col>
        </Row>
