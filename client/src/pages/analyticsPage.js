@@ -29,6 +29,8 @@ const Adashboard = () => {
     const [returnByCategory, setReturnByCategory] = useState([]);
       const [totalReturn, setTotalReturn] = useState(0);
             const [totalDeductedReturn, setTotalDeductedReturn] = useState(0);
+const [profitPercentage, setProfitPercentage] = useState(0);
+
   const [topReturns, setTopReturns] = useState([]);
 
  const [chartMetricReturn, setChartMetricReturn] = useState("totalReturnedAmount");
@@ -47,6 +49,7 @@ const Adashboard = () => {
        // Fetch total receipts for the month
             const receiptsResponse = await axios.get(`/api/bills/total-receipts?date=${formattedDate}`);
             setTotalReceipts(receiptsResponse.data.totalReceipts || 0);
+            setProfitPercentage( (data.totalSales || 1) / (receiptsResponse.data.totalReceipts || 1))
 
 
 
@@ -66,6 +69,7 @@ const Adashboard = () => {
             setReturnByCategory(returnData);
           setTotalReturn(returnData.reduce((sum, entry) => sum + entry.totalAmount, 0));
           setTotalDeductedReturn(returnData.reduce((sum, entry) => sum + entry.deductedAmount, 0));
+
    setSelectedReturnCategories(returnData.map((category) => category.category));
 
           const formattedReturn = returnData.map(item => ({
@@ -112,6 +116,7 @@ const Adashboard = () => {
       setTotalSales(0);
       setTotalReceipts(0);
       setTotalExpense( 0);
+       setProfitPercentage( 0)
 
       setSalesByCategory([]);
       setCategoryData([]);
@@ -366,7 +371,19 @@ const [showTable, setShowTable] = useState(false);
                         prefix="₹"
                       />
                     </Card>
+
                   </Col>
+                        <Col span={8}>
+                         <Card>
+                             <Statistic
+                               title="Profit percentage"
+                               value={profitPercentage}
+                               precision={2}
+                               valueStyle={{ color: "#3f8600" }}
+                               prefix="₹"
+                             />
+                           </Card>
+                      </Col>
        </Row>
 
        <Row gutter={16} style={{ marginTop: 20 }}>
