@@ -102,6 +102,8 @@ const priceTable = [
 
               { flavour: "Round Cake", shape: "Tiramisu", weight: "1kg", price: 1500 },
 
+              { flavour: "Round Cake", shape: "Blue berry cheese cake", weight: "1kg", price: 1500 },
+
 
          { flavour: "Square Cake", shape: "Pineapple", weight: "1kg", price: 700 },
          { flavour: "Square Cake", shape: "Black Forest", weight: "1kg", price: 780 },
