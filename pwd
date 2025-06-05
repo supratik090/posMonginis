@@ -4,6 +4,10 @@ m0JyvZmxsEKi4CMK
 pm2 start ecosystem.config.js --only pos-R3701
 pm2 start ecosystem.config.js --only pos-R3747
 
+
+REACT_APP_API_PROXY=http://localhost:4010 npm start
+
+
     set DB_URL=mongodb+srv://houseofsupr:m0JyvZmxsEKi4CMK@clusterhos.4ifj7.mongodb.net/database
 
 mongodb+srv://houseofsupr:m0JyvZmxsEKi4CMK@clusterhos.4ifj7.mongodb.net/?retryWrites=true&w=majority&appName=ClusterHos
