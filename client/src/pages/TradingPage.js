@@ -427,7 +427,7 @@ if (returnDate.isSame(today, 'day')) {
                 <h4 className="tab-alert">Upcoming Returns ⚠️</h4>
               </Tooltip>
             ) : (
-              <h4>"Upcoming Returns"</h4>
+              <h4>Upcoming Returns</h4>
             )
           }
           key="2"

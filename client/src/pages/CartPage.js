@@ -231,7 +231,7 @@ const clearCart = () => {
             <Col span={12}>
               <Form.Item name="cashier" label="Cashier" rules={[{ required: true, message: "Please select Cashier" }]}>
                 <Select placeholder="Select Cashier" value={cashier} onChange={handleCashierChange} allowClear>
-                  <Select.Option value="Priya">Priya</Select.Option>
+                  <Select.Option value="Rupsa">Rupsa</Select.Option>
                   <Select.Option value="Ankita">Ankita</Select.Option>
                   <Select.Option value="Shrabani">Shrabani</Select.Option>
                   <Select.Option value="Others">Others</Select.Option>
