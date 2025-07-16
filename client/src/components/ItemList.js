@@ -1,15 +1,27 @@
 import { Button, Card } from "antd";
-import React from "react";
 import { useDispatch } from "react-redux";
+import React, { useState } from "react";
 
 const ItemList = ({ item }) => {
   const dispatch = useDispatch();
+
+   const [isDisabled, setIsDisabled] = useState(false);
+
   //update cart handler
   const handleAddTOCart = () => {
+
+   if (isDisabled) return;
+
+      // Disable button
+      setIsDisabled(true);
+
     dispatch({
       type: "ADD_TO_CART",
       payload: { ...item, quantity: 1 },
     });
+
+      // Re-enable button after 1 second
+        setTimeout(() => setIsDisabled(false), 1000);
   };
   const { Meta } = Card;
   return (

@@ -168,7 +168,7 @@ const groupBillsByTime = (billsData) => {
 
   billsData.forEach((bill) => {
     const billTime = momenttz.utc(bill.date).tz("Asia/Kolkata");
-    const isMorning = billTime.hour() < 15 || (billTime.hour() === 15 && billTime.minute() < 30);
+    const isMorning = billTime.hour() < 17 ;
 
     if (isMorning) {
       morningSales += bill.totalAmount;
@@ -248,7 +248,7 @@ const groupBillsByTime = (billsData) => {
                   const category = item.category?.toLowerCase(); // Ensure case consistency
                   if (category && categoryCounts.hasOwnProperty(category)) {
                     categoryCounts[category] += item.quantity;
-                    categoryAmounts[category]+=item.price;
+                    categoryAmounts[category]+=item.price*  item.quantity;
                   }
                 });
        }
@@ -279,7 +279,7 @@ const totalOnline = paymentModes.online ? paymentModes.online.sales : 0;
      });
 };
 
-const targetMorning = 4000;
+const targetMorning = 5000;
 const targetAfternoon = 12000;
 
 const getTargetClass = (actual, target) => (actual >= target ? "text-green-600 font-bold" : "text-red-600 font-bold");
@@ -422,14 +422,14 @@ const handleSearch = (e) => {
           </thead>
           <tbody>
             <tr>
-              <td className="border p-2">Morning (Before 3:30 PM)</td>
+              <td className="border p-2">Morning (Before 5:00 PM)</td>
               <td className={`border p-2 ${getTargetClass(salesSummary.morningSales, targetMorning)}`}>
                 ₹{salesSummary.morningSales}
               </td>
               <td className="border p-2">₹{targetMorning}</td>
             </tr>
             <tr>
-              <td className="border p-2">Afternoon (After 3:30 PM)</td>
+              <td className="border p-2">Afternoon (After 5:00 PM)</td>
               <td className={`border p-2 ${getTargetClass(salesSummary.afternoonSales, targetAfternoon)}`}>
                 ₹{salesSummary.afternoonSales}
               </td>

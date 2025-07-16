@@ -19,6 +19,10 @@ const [currentDraftIndex, setCurrentDraftIndex] = useState(null);
   const navigate = useNavigate();
   const { cartItems } = useSelector((state) => state.rootReducer);
 
+  const [discount, setDiscount] = useState(0);
+  const [selectedDiscount, setSelectedDiscount] = useState(null);
+
+
 const [cashReceived, setCashReceived] = useState(0);
 const [changeDue, setChangeDue] = useState(0);
 
@@ -36,13 +40,14 @@ const handleSubmit = async (value) => {
 
   setIsSubmitting(true); // Disable button
 
-  const totalAmount = subTotal + adjustment;
+  const totalAmount = subTotal + adjustment - discount;
 
   const newObject = {
     ...value,
     cartItems,
     subTotal,
     adjustment,
+    discount,
     totalAmount,
     userId: JSON.parse(user)._id,
   };
@@ -81,6 +86,9 @@ const handleCashReceivedChange = (e) => {
 
 
   useEffect(() => {
+    if (selectedDiscount) {
+      handleDiscountChange(selectedDiscount);
+    }
     let temp = 0;
     cartItems.forEach((item) => (temp += item.price * item.quantity));
     setSubTotal(temp);
@@ -115,6 +123,55 @@ const handleCashierChange = (value) => {
   const handleAdjustmentChange = (e) => {
     setAdjustment(Number(e.target.value) || 0); // Ensure it's a number
   };
+
+const handleDiscountChange = (value) => {
+  setSelectedDiscount(value);
+  let discountAmount = 0;
+
+  if (value === "cake10") {
+    // 10% off on Cake items > ₹650
+    const cakeItems = cartItems.filter(
+      item =>
+        item.category?.toLowerCase() === "cake" &&
+        item.price > 650
+    );
+
+    const cakeTotal = cakeItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+
+    if (cakeTotal > 0) {
+      discountAmount = cakeTotal * 0.1;
+    } else {
+      message.warning("No Cake items above ₹650 found for discount.");
+    }
+  }
+
+  if (value === "cake-pastry-combo") {
+    // Check for Cake > ₹400
+    const hasCakeOver400 = cartItems.some(
+      item =>
+        item.category?.toLowerCase() === "cake" &&
+        item.price >= 400
+    );
+
+    const firstPastryItem = cartItems.find(
+      item => item.category?.toLowerCase() === "pastry"
+    );
+
+    if (hasCakeOver400 && firstPastryItem) {
+      // Apply 50% discount on ONE unit of first pastry item
+      discountAmount = (firstPastryItem.price || 0) * 0.5;
+    } else {
+      message.warning("Combo condition not met (Cake > ₹400 + Pastry).");
+    }
+  }
+
+  setDiscount(discountAmount);
+};
+
+
 
   const columns = [
     { title: "Name", dataIndex: "name" },
@@ -231,13 +288,23 @@ const clearCart = () => {
             <Col span={12}>
               <Form.Item name="cashier" label="Cashier" rules={[{ required: true, message: "Please select Cashier" }]}>
                 <Select placeholder="Select Cashier" value={cashier} onChange={handleCashierChange} allowClear>
-                  <Select.Option value="Rupsa">Rupsa</Select.Option>
-                  <Select.Option value="Ankita">Ankita</Select.Option>
-                  <Select.Option value="Shrabani">Shrabani</Select.Option>
+                  <Select.Option value="Morning">Morning</Select.Option>
+                   <Select.Option value="Arshan">Arshan</Select.Option>
                   <Select.Option value="Others">Others</Select.Option>
+                  <Select.Option value="Shrabani">Shrabani</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
+          <Col span={12}>
+            <Form.Item name="discountOffer" label="Discount Offer">
+              <Select placeholder="Select Offer" onChange={handleDiscountChange} allowClear>
+                <Select.Option value="cake10">🎂 10% off on Cakes > ₹650</Select.Option>
+                <Select.Option value="cake-pastry-combo">🍰 50% off First Pastry with Cake > ₹400</Select.Option>
+                <Select.Option value="none">No Discount</Select.Option>
+              </Select>
+            </Form.Item>
+          </Col>
+
           </Row>
 
           {/* New Adjustment Field */}
@@ -276,9 +343,10 @@ const clearCart = () => {
      style={{ fontSize: "14px", borderTop: "1px solid #ddd" }}>
   <span>Subtotal: ₹ {subTotal.toFixed(2)}</span>
   <span>Adjustment: ₹ {adjustment.toFixed(2)}</span>
-  <span style={{ fontSize: "18px", fontWeight: "bold", color: "#d9534f" }}>
-    Total: ₹ {(subTotal + adjustment).toFixed(2)}
-  </span>
+  <span>Discount: ₹ {discount.toFixed(2)}</span>
+    <span style={{ fontSize: "18px", fontWeight: "bold", color: "#d9534f" }}>
+      Total: ₹ {(subTotal + adjustment - discount).toFixed(2)}
+    </span>
 </div>
 
 

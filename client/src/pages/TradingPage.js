@@ -144,6 +144,18 @@ const TradingPage = () => {
 
   // Columns for the table
   const columns = [
+  {
+        title: "Actions",
+        dataIndex: "_id",
+        render: (id, record) => (
+          <div>
+            <EditOutlined
+              style={{ cursor: "pointer", marginRight: 8 }}
+              onClick={() => handleEdit(record)}
+            />
+          </div>
+        ),
+      },
     {
       title: "Code",
       dataIndex: "code",
@@ -260,18 +272,7 @@ if (returnDate.isSame(today, 'day')) {
       render: (active) => (active ? "Yes" : "No"),
       sorter: (a, b) => a.isActive - b.isActive,
     },
-    {
-      title: "Actions",
-      dataIndex: "_id",
-      render: (id, record) => (
-        <div>
-          <EditOutlined
-            style={{ cursor: "pointer", marginRight: 8 }}
-            onClick={() => handleEdit(record)}
-          />
-        </div>
-      ),
-    },
+
   ];
 
 
