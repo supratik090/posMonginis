@@ -1,0 +1,38 @@
+/* Urgent orders - light red */
+.row-urgent {
+  background-color: #ffd6d6 !important; /* brighter red */
+}
+
+/* Pending (future but not done) - light green */
+.row-pending {
+  background-color: #e6ffe6 !important; /* brighter light green */
+}
+
+/* Done - grey */
+.row-done {
+  background-color: #d9d9d9 !important; /* light grey */
+}
+
+
+
+
+/* Custom checkbox styling */
+.custom-checkbox .ant-checkbox-inner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #1890ff !important; /* blue border */
+  border-radius: 4px;
+}
+
+/* Checked state */
+.custom-checkbox .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #28a745 !important; /* green box */
+  border-color: #28a745 !important;
+}
+
+/* ✅ Make the checkmark blue instead of white */
+.custom-checkbox .ant-checkbox-checked .ant-checkbox-inner::after {
+  border: solid #1890ff !important;  /* blue tick */
+  border-width: 0 2px 2px 0 !important;
+  transform: rotate(45deg) scale(1) !important;
+}

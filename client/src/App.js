@@ -6,6 +6,7 @@ import Homepage from "./pages/Homepage";
 import ItemPage from "./pages/ItemPage";
 import InventoryPage from "./pages/InventoryPage";
 import CashBox from "./pages/Cashbox";
+import SpecialOrders from "./pages/SpecialOrders"
 import MorningDeliveryPage from "./pages/MorningDeliveryPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -98,6 +99,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <CashBox />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/specialOrders"
+            element={
+              <ProtectedRoute>
+                <SpecialOrders />
               </ProtectedRoute>
             }
           />

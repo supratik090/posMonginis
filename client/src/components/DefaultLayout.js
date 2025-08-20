@@ -14,6 +14,7 @@ import {
   StockOutlined,
   RollbackOutlined,
   TagOutlined ,
+  GiftOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
 import React, { useEffect, useState } from "react";
@@ -124,6 +125,13 @@ const DefaultLayout = ({ children }) => {
             onClick={() => navigate("/cashbox")}
           >
             Cash Box
+          </Menu.Item>
+          <Menu.Item
+            key="/specialOrders"
+            icon={<GiftOutlined />}
+            onClick={() => navigate("/specialOrders")}
+          >
+            Special Orders
           </Menu.Item>
           <Menu.Item
             key="/price"
