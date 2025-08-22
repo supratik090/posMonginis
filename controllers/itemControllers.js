@@ -123,7 +123,7 @@ const addInventoryController = async (req, res, next) => {
          if (item.code) {
            itemLookup[item.code] = item.shelfLife;
          }
-       });ill
+       })
         const inv = req.body;
 
         console.log("date", new Date())
