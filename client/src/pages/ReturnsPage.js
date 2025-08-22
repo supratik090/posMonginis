@@ -1,140 +1,120 @@
 import React, { useEffect, useState } from "react";
-import { Table, DatePicker, Card, Typography, message } from "antd";
+import { Table, DatePicker, Card, Typography, message, InputNumber } from "antd";
 import axios from "axios";
 import moment from "moment";
 import DefaultLayout from "../components/DefaultLayout";
+import "../styles/SpecialOrders.css";
 
 const { Title } = Typography;
 
 function ReturnsPage() {
-  const [selectedMonth, setSelectedMonth] = useState(moment());
+
+  const [selectedDate, setSelectedDate] = useState(moment().add(1, "day"));
+
   const [data, setData] = useState([]);
-  const [summary, setSummary] = useState({ totalDeductedAmount: 0, totalReturnAmount: 0, count: 0 });
   const [loading, setLoading] = useState(false);
 
   const fetchReturns = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("/api/items/get-returns", {
-        params: { month: selectedMonth.format("YYYY-MM") },
+      const res = await axios.get("/api/bills/get-todays-returns", {
+        params: { returnDate: selectedDate.format("YYYY-MM-DD") },
       });
-      setData(res.data.expenses || []);
-      setSummary({
-        totalDeductedAmount: res.data.totalDeductedAmount,
-        totalReturnAmount: res.data.totalReturnAmount,
-        count: res.data.count,
-      });
-      setLoading(false);
-    } catch (error) {
-      message.error("Failed to fetch return data.");
-      console.error(error);
+
+      // Add editable inventory + computed return
+       let enriched = res.data.data.map((row) => {
+           // Rule 1: if shelfLife = 2 → force T-3 = 0
+           if (row.shelfLife === 2) {
+             row.t3 = 0;
+           }
+
+           return {
+             ...row,
+             inventory: 0,
+             returnValue: 0,
+           };
+         });
+
+         // Rule 2: filter out rows where ( T-2 + T-3) = 0
+         enriched = enriched.filter((row) => (row.t2 + row.t3) > 0);
+
+      setData(enriched);
+    } catch (err) {
+      message.error("Failed to fetch pastry returns");
+      console.error(err);
+    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchReturns();
-  }, [selectedMonth]);
+  }, [selectedDate]);
 
-  // Flatten returnItems with reference to parent return
-  const flatReturnItems = data.flatMap((ret) =>
-    (ret.returnItems || []).map((item, index) => ({
-      ...item,
-      returnDate: ret.returnDate,
-      creditNote: ret.creditNote,
-      key: `${ret._id}_${index}`, // unique key
-    }))
-  );
+const handleInventoryChange = (value, record) => {
+  const newData = data.map((row) => {
+    if (row.code !== record.code) return row;
 
-  const summaryColumns = [
-    {
-      title: "Month",
-      dataIndex: "month",
-      key: "month",
-      render: () => selectedMonth.format("MMMM YYYY"),
-    },
-    {
-      title: "Total Return Amount",
-      dataIndex: "totalReturnAmount",
-      key: "totalReturnAmount",
-      render: () => `₹ ${(summary.totalReturnAmount ?? 0).toFixed(2)}`,
-    },
-    {
-      title: "Total Deducted Amount",
-      dataIndex: "totalDeductedAmount",
-      key: "totalDeductedAmount",
-      render: () => `₹ ${(summary.totalDeductedAmount ?? 0).toFixed(2)}`,
-    },
-    {
-      title: "Total Returns",
-      dataIndex: "count",
-      key: "count",
-      render: () => summary.count ?? 0,
-    },
-  ];
+    let returnValue = value;
 
-  const itemColumns = [
-    {
-      title: "Credit Note",
-      dataIndex: "creditNote",
-      key: "creditNote",
+    if (row.shelfLife === 2) {
+      returnValue = value - (row.t1 || 0) ;
+    } else if (row.shelfLife === 3) {
+      returnValue = value - (row.t1 || 0) - (row.t2 || 0) ;
+    }
+
+returnValue = Math.max(0, returnValue);
+
+    return {
+      ...row,
+      inventory: value,
+      returnValue,
+    };
+  });
+
+  setData(newData);
+};
+
+
+  const columns = [
+    { title: "Item", dataIndex: "name", key: "name" },
+    { title: "Shelf Life", dataIndex: "shelfLife", key: "shelfLife" },
+    { title: "Inventory", dataIndex: "inventory", key: "inventory",
+      render: (_, record) => (
+        <InputNumber
+          min={0}
+          value={record.inventory}
+          onChange={(val) => handleInventoryChange(val, record)}
+        />
+      )
     },
-    {
-      title: "Return Date",
-      dataIndex: "returnDate",
-      key: "returnDate",
-    },
-    {
-      title: "Item Code",
-      dataIndex: "code",
-      key: "code",
-    },
-    {
-      title: "Item Name",
-      dataIndex: "name",
-      key: "name",
-      render: (text) => text || "-",
-    },
-    {
-      title: "Quantity",
-      dataIndex: "quantity",
-      key: "quantity",
-    },
-    {
-      title: "Price",
-      dataIndex: "price",
-      key: "price",
-      render: (value) => `₹ ${(value ?? 0).toFixed(2)}`,
-    },
+    {  title: `(${selectedDate.clone().subtract(1, "days").format("DD-MMM")})`, dataIndex: "t1", key: "t1" },
+    {  title: `(${selectedDate.clone().subtract(2, "days").format("DD-MMM")})`, dataIndex: "t2", key: "t2" },
+    {  title: `(${selectedDate.clone().subtract(3, "days").format("DD-MMM")})`, dataIndex: "t3", key: "t3" },
+    { title: "Return", dataIndex: "returnValue", key: "returnValue" },
   ];
 
   return (
     <DefaultLayout>
-      <Title level={3}>Returns Overview</Title>
+      <Title level={3}>Pastry Returns</Title>
 
       <DatePicker
-        picker="month"
-        value={selectedMonth}
-        onChange={(date) => setSelectedMonth(date)}
+        value={selectedDate}
+        onChange={(date) => setSelectedDate(date)}
         allowClear={false}
         style={{ marginBottom: 16 }}
       />
 
-      <Card title="Monthly Summary" style={{ marginBottom: 24 }}>
+      <Card>
         <Table
-          dataSource={[summary]}
-          columns={summaryColumns}
-          pagination={false}
-          rowKey={() => "summary"}
-        />
-      </Card>
-
-      <Card title="All Return Items">
-        <Table
-          dataSource={flatReturnItems}
-          columns={itemColumns}
+          dataSource={data}
+          columns={columns}
+          rowKey="code"
           loading={loading}
-          pagination={{ pageSize: 20 }}
+          pagination={false}
+          rowClassName={(record) => {
+              return record.returnValue > 1 ? "row-red" : "";
+            }}
         />
       </Card>
     </DefaultLayout>

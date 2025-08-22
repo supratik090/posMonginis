@@ -36,3 +36,9 @@
   border-width: 0 2px 2px 0 !important;
   transform: rotate(45deg) scale(1) !important;
 }
+
+.row-red {
+  background-color: #ffe6e6 !important; /* light red background */
+  color: #b71c1c; /* dark red text */
+  font-weight: 500;
+}

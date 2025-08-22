@@ -29,6 +29,9 @@ const inventorySchema = new mongoose.Schema({
       type: Number,
       required: [true, 'Quantity is required.'],
     },
+ quantityOriginal: {
+      type: Number,
+    },
     returnDate: {
     type: Date,
     default: getDefaultReturnDate ,
@@ -43,6 +46,7 @@ const inventorySchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true},
 }
 ,{ timestamps: true });
+
 
 const Inventory = mongoose.model('Inventory', inventorySchema);
 

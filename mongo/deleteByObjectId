@@ -1,4 +1,4 @@
-db.bills.deleteOne({_id:ObjectId('6820da825d8020c66117aabf')})
+db.bills.deleteOne({_id:ObjectId('68a2c66f0eff45cb20cc716d')})
 
 
 

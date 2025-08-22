@@ -2,8 +2,8 @@ db.bills.aggregate([
   {
     $match: {
       date: {
-        $gte: new Date("2025-03-01T00:00:00.000Z"),
-        $lt: new Date("2025-04-01T00:00:00.000Z")
+        $gte: new Date("2025-07-01T00:00:00.000Z"),
+        $lt: new Date("2025-08-01T00:00:00.000Z")
       }
     }
   },
@@ -78,67 +78,41 @@ db.bills.aggregate([
 
 
 
-
-
-
-
-
-
+...
 [
   {
-    _id: { date: '2025-04-03' },
-    morningSales: 2342,
-    eveningSales: 12794,
-    totalSales: 15136,
-    billCount: 70
+    _id: { date: '2025-07-01' },
+    morningSales: 1837,
+    eveningSales: 13575,
+    totalSales: 15412,
+    billCount: 78
   },
   {
-    _id: { date: '2025-04-08' },
-    morningSales: 5999,
-    eveningSales: 6020,
-    totalSales: 12019,
-    billCount: 60
+    _id: { date: '2025-07-07' },
+    morningSales: 4094,
+    eveningSales: 9107,
+    totalSales: 13201,
+    billCount: 58
   },
   {
-    _id: { date: '2025-04-09' },
-    morningSales: 2950,
-    eveningSales: 12072,
-    totalSales: 15022,
+    _id: { date: '2025-07-09' },
+    morningSales: 2885,
+    eveningSales: 15622,
+    totalSales: 18507,
     billCount: 64
   },
   {
-    _id: { date: '2025-04-12' },
-    morningSales: 4689,
-    eveningSales: 8164,
-    totalSales: 12853,
-    billCount: 59
+    _id: { date: '2025-07-10' },
+    morningSales: 4385,
+    eveningSales: 7918,
+    totalSales: 12303,
+    billCount: 73
   },
   {
-    _id: { date: '2025-04-15' },
-    morningSales: 919,
-    eveningSales: 13919,
-    totalSales: 14838,
-    billCount: 53
-  },
-  {
-    _id: { date: '2025-04-20' },
-    morningSales: 4137,
-    eveningSales: 8870,
-    totalSales: 13007,
-    billCount: 64
-  },
-  {
-    _id: { date: '2025-04-21' },
-    morningSales: 4048,
-    eveningSales: 8041,
-    totalSales: 12089,
-    billCount: 61
-  },
-  {
-    _id: { date: '2025-04-26' },
-    morningSales: 3494,
-    eveningSales: 12059,
-    totalSales: 15553,
-    billCount: 63
+    _id: { date: '2025-07-18' },
+    morningSales: 5001,
+    eveningSales: 9069,
+    totalSales: 14070,
+    billCount: 66
   }
-
+]

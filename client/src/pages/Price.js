@@ -56,7 +56,7 @@ const priceTable = [
 
 
 
-     { flavour: "Custom Cake", shape: "Any", weight: "1kg", price: 1325 },
+     { flavour: "Custom Cake", shape: "Any", weight: "1kg", price: 1300 },
       { flavour: "Custom Cake", shape: "Any", weight: "1.5kg", price: 2000 },
     { flavour: "Custom Cake", shape: "Any", weight: "2kg", price: 2650 },
     { flavour: "Custom Cake", shape: "Any", weight: "3kg", price: 3975 },
