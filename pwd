@@ -8,15 +8,13 @@ pm2 start ecosystem.config.js --only pos-R3747
 REACT_APP_API_PROXY=http://localhost:4010 npm start
 
 
-    set DB_URL=mongodb+srv://houseofsupr:m0JyvZmxsEKi4CMK@clusterhos.4ifj7.mongodb.net/database
-
-mongodb+srv://houseofsupr:m0JyvZmxsEKi4CMK@clusterhos.4ifj7.mongodb.net/?retryWrites=true&w=majority&appName=ClusterHos
+set DB_URL=mongodb+srv://houseofsupr:m0JyvZmxsEKi4CMK@clusterhos.4ifj7.mongodb.net/database
 
 mongodb+srv://supratikde090:ztDTTjn5upUs2gai@cluster0.hgdwptz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
 
 
 test123@gmail.com
-Test_123
+.
 
 
 to start client

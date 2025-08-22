@@ -221,7 +221,7 @@ const CashBox = () => {
             rules={[{ required: true, message: "Please select a cashier" }]}
           >
             <Select placeholder="Select a cashier">
-              <Select.Option value="Arshan">Arshan</Select.Option>
+              <Select.Option value="Evening">Evening</Select.Option>
               <Select.Option value="Morning">Morning</Select.Option>
               <Select.Option value="Shrabani">Shrabani</Select.Option>
             </Select>

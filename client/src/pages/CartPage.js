@@ -133,7 +133,7 @@ const handleDiscountChange = (value) => {
     const cakeItems = cartItems.filter(
       item =>
         item.category?.toLowerCase() === "cake" &&
-        item.price > 650
+        item.price >= 650
     );
 
     const cakeTotal = cakeItems.reduce(
@@ -144,7 +144,7 @@ const handleDiscountChange = (value) => {
     if (cakeTotal > 0) {
       discountAmount = cakeTotal * 0.1;
     } else {
-      message.warning("No Cake items above ₹650 found for discount.");
+      message.warning("No Cake items above  ₹649 found for discount.");
     }
   }
 
@@ -289,7 +289,7 @@ const clearCart = () => {
               <Form.Item name="cashier" label="Cashier" rules={[{ required: true, message: "Please select Cashier" }]}>
                 <Select placeholder="Select Cashier" value={cashier} onChange={handleCashierChange} allowClear>
                   <Select.Option value="Morning">Morning</Select.Option>
-                   <Select.Option value="Arshan">Arshan</Select.Option>
+                   <Select.Option value="Evening">Evening</Select.Option>
                   <Select.Option value="Others">Others</Select.Option>
                   <Select.Option value="Shrabani">Shrabani</Select.Option>
                 </Select>
