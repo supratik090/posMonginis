@@ -5,12 +5,13 @@ pm2 start ecosystem.config.js --only pos-R3701
 pm2 start ecosystem.config.js --only pos-R3747
 
 
-REACT_APP_API_PROXY=http://localhost:4010 npm start
+REACT_APP_API_PROXY=http://localhost:4000 REACT_APP_SHOP_NAME=Vikhroli_R3701 npm start
+REACT_APP_API_PROXY=http://localhost:4010 REACT_APP_SHOP_NAME=Bangur_Nagar_R3747 npm start
 
 
 set DB_URL=mongodb+srv://houseofsupr:m0JyvZmxsEKi4CMK@clusterhos.4ifj7.mongodb.net/database
 
-mongodb+srv://supratikde090:ztDTTjn5upUs2gai@cluster0.hgdwptz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+mongodb+srv://supratikde090:ztDTTjn5upUs2gai@cluster0.hgdwptz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/database
 
 
 test123@gmail.com

@@ -154,29 +154,38 @@ const DefaultLayout = ({ children }) => {
         </Menu>
       </Sider>
       <Layout className="site-layout">
-        <Header
-          style={{
-            margin: 8,
-            padding: 0,
-            borderRadius: 8,
-            background: colorBgContainer,
-          }}
-        >
-          {React.createElement(
-            collapsed ? MenuUnfoldOutlined : MenuFoldOutlined,
-            {
-              className: "trigger",
-              onClick: toggle,
-            }
-          )}
-          <div
-            className="cart-item d-flex jusitfy-content-space-between flex-row"
-            onClick={() => navigate("/cart")}
-          >
-            <p>{cartItems.length}</p>
-            <ShoppingCartOutlined />
-          </div>
-        </Header>
+       <Header
+         style={{
+           margin: 8,
+           padding: "0 16px",
+           borderRadius: 8,
+           background: colorBgContainer,
+           display: "flex",
+           alignItems: "center",
+           justifyContent: "space-between",
+         }}
+       >
+         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+           {React.createElement(
+             collapsed ? MenuUnfoldOutlined : MenuFoldOutlined,
+             {
+               className: "trigger",
+               onClick: toggle,
+             }
+           )}
+           <h2 style={{ margin: 0 }}>🎂  Monginis  {process.env.REACT_APP_SHOP_NAME || " Vikhroli R3701"}</h2>
+
+         </div>
+
+         <div
+           className="cart-item d-flex jusitfy-content-space-between flex-row"
+           onClick={() => navigate("/cart")}
+           style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+         >
+           <p style={{ margin: 0 }}>{cartItems.length}</p>
+           <ShoppingCartOutlined />
+         </div>
+       </Header>
         <Content className="content">{children}</Content>
       </Layout>
     </Layout>
