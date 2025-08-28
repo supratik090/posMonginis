@@ -1,10 +1,12 @@
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { Button, Form, Input, Modal, Select, Table, AutoComplete, message } from "antd";
+import { Button, Form, Input, Modal, Select, Table, AutoComplete, message,DatePicker } from "antd";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import DefaultLayout from "../components/DefaultLayout";
 import moment from "moment";
+import dayjs from "dayjs";
+
 
 const InventoryPage = () => {
   const dispatch = useDispatch();
@@ -15,11 +17,11 @@ const InventoryPage = () => {
   const [editItem, setEditItem] = useState(null);
   const [form] = Form.useForm();
   const [allItems, setAllItems] = useState([]); // Store all items
-
+const [saveDisabled, setSaveDisabled] = useState(false);
   // Fetch all items from /api/items/get-item
   const fetchAllItems = async () => {
     try {
-      const { data } = await axios.get("/api/items/get-item");
+      const { data } =  await axios.get("http://localhost:4000/api/items/get-item");
       setAllItems(data);
     } catch (error) {
       console.error("Error fetching items:", error);
@@ -32,7 +34,7 @@ const InventoryPage = () => {
   const getAllItems = async () => {
     try {
       dispatch({ type: "SHOW_LOADING" });
-      const { data } = await axios.get("/api/items/get-inventory");
+      const { data } =  await axios.get("http://localhost:4000/api/items/get-inventory");
       setItemsData(data);
       setFilteredData(data);
       dispatch({ type: "HIDE_LOADING" });
@@ -63,7 +65,7 @@ const InventoryPage = () => {
   const handleDelete = async (record) => {
     try {
       dispatch({ type: "SHOW_LOADING" });
-      await axios.post("/api/items/delete-inventory", { itemId: record._id });
+      await axios.post("http://localhost:4000/api/items/post-delete-inventory", { itemId: record._id });
       message.success("Item Deleted Successfully");
       getAllItems();
       setPopupModal(false);
@@ -105,6 +107,18 @@ const InventoryPage = () => {
 
   // Table columns with filters on dates (without time)
   const columns = [
+   {
+        title: "Actions",
+        dataIndex: "_id",
+        render: (id, record) => (
+          <div>
+            <DeleteOutlined
+              style={{ cursor: "pointer" }}
+              onClick={() => handleDelete(record)}
+            />
+          </div>
+        ),
+      },
     { title: "Name", dataIndex: "name" },
     { title: "Code", dataIndex: "code" },
     { title: "Price", dataIndex: "price" },
@@ -133,26 +147,25 @@ const InventoryPage = () => {
         record.returnDate &&
         moment(record.returnDate).format("YYYY-MM-DD") === value,
     },
+
     {
-      title: "Actions",
-      dataIndex: "_id",
-      render: (id, record) => (
-        <div>
-          <DeleteOutlined
-            style={{ cursor: "pointer" }}
-            onClick={() => handleDelete(record)}
-          />
-        </div>
-      ),
-    },
+      title: "Created At",
+      dataIndex: "createdAt",
+      render: (text) => text ? moment(text).format("YYYY-MM-DD HH:mm") : "",
+      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+      defaultSortOrder: "descend", // shows newest first
+    }
+
   ];
 
   // Handle form submit for add/edit
   const handleSubmit = async (value) => {
+  setSaveDisabled(true);
+  setTimeout(() => setSaveDisabled(false), 1000);
     if (editItem === null) {
       try {
         dispatch({ type: "SHOW_LOADING" });
-        await axios.post("/api/items/post-inventory", value);
+        await axios.post("http://localhost:4000/api/items/post-inventory", value);
         message.success("Item Added Successfully");
         getAllItems();
         setPopupModal(false);
@@ -165,7 +178,7 @@ const InventoryPage = () => {
     } else {
       try {
         dispatch({ type: "SHOW_LOADING" });
-        await axios.put("/api/items/post-edit-inventory", {
+        await axios.put("http://localhost:4000/api/items/post-edit-inventory", {
           ...value,
           itemId: editItem._id,
         });
@@ -201,7 +214,7 @@ const InventoryPage = () => {
           style={{ width: 800 }}
         />
         <Button type="primary" onClick={() => setPopupModal(true)}>
-          Add Item
+          Add Trading Item
         </Button>
       </div>
 
@@ -219,7 +232,11 @@ const InventoryPage = () => {
         >
           <Form
             layout="vertical"
-            initialValues={editItem || {}}
+          initialValues={{
+                  ...editItem,
+                  invoiceDate: editItem?.invoiceDate || dayjs(), // default today
+                  invoiceNo: editItem?.invoiceNo || "-",         // default "-"
+                }}
             onFinish={handleSubmit}
             form={form}
           >
@@ -270,16 +287,45 @@ const InventoryPage = () => {
             >
               <Input />
             </Form.Item>
-            <Form.Item
-              name="image"
-              label="Image URL"
-              rules={[{ required: false, message: "Please enter an image URL" }]}
-            >
-              <Input />
+ {/* Manufactured Date */}
+      <Form.Item
+        name="manufacturedDt"
+        label="Manufactured Date"
+        rules={[{ required: true, message: "Please select manufactured date" }]}
+      >
+        <DatePicker
+          format="DD-MM-YYYY"
+          onChange={(date) => {
+            const shelfLife = form.getFieldValue("shelfLife");
+            const expiryDate =
+              date && shelfLife ? date.add(shelfLife, "day") : null;
+
+            form.setFieldsValue({ expiryDate });
+          }}
+        />
+      </Form.Item>
+
+      {/* Expiry Date */}
+      <Form.Item
+        name="expiryDate"
+        label="Expiry Date"
+        rules={[{ required: true, message: "Please select expiry date" }]}
+      >
+        <DatePicker format="DD-MM-YYYY" />
+      </Form.Item>
+
+       {/* Hidden invoice date */}
+            <Form.Item name="invoiceDate" hidden>
+              <Input type="hidden" />
+            </Form.Item>
+
+            {/* Hidden invoice number */}
+            <Form.Item name="invoiceNo" hidden>
+              <Input type="hidden" />
             </Form.Item>
 
             <div className="d-flex justify-content-end">
-              <Button type="primary" htmlType="submit">
+              <Button type="primary" htmlType="submit" disabled={saveDisabled}>
                 SAVE
               </Button>
             </div>

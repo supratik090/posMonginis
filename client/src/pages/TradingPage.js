@@ -22,6 +22,10 @@ const TradingPage = () => {
   const [form] = Form.useForm();
   const [hasMissingManufacturedDate, setHasMissingManufacturedDate] = useState(false);
   const [hasUpcomingReturns, setHasUpcomingReturns] = useState(false);
+  const [showEditItems, setShowEditItems] = useState(false);
+const [editSearchText, setEditSearchText] = useState("");
+const [editFilteredData, setEditFilteredData] = useState([]);
+const [editSource, setEditSource] = useState(null);
 
 
 
@@ -40,7 +44,7 @@ const TradingPage = () => {
   // Fetch trading inventory
   const fetchTradingInventory = async () => {
     try {
-      const res = await axios.get("/api/items/get-trading");
+      const res =  await axios.get("http://localhost:4000/api/items/get-trading");
 
       // Sort: Manufactured Date (nulls first), then Invoice Date (newest first)
       const sorted = res.data.sort((a, b) => {
@@ -65,8 +69,18 @@ const TradingPage = () => {
       });
 
       // Check for missing manufactured dates
-      const anyMissing = sorted.some(item => !item.manufacturedDt);
-      setHasMissingManufacturedDate(anyMissing);
+// Find all active items missing manufactured date
+const missingItems = sorted.filter(
+  (item) => item.isActive && !item.manufacturedDt
+);
+
+// Debug log
+console.log("Active items missing manufactured date:", missingItems);
+
+// Boolean flag for blinking / highlighting
+const anyMissing = missingItems.length > 0;
+setHasMissingManufacturedDate(anyMissing);
+
 
       const today = dayjs();
       const twoDaysAgo = today.subtract(2, "day");
@@ -83,6 +97,7 @@ const TradingPage = () => {
 
       setData(sorted);
       setFilteredData(sorted);
+      setEditFilteredData(sorted);
  const filteredNewItems = sorted.filter(item => item.manufacturedDt === undefined ) ;
 
 
@@ -91,6 +106,16 @@ const TradingPage = () => {
       message.error("Failed to fetch trading inventory");
     }
   };
+
+const handleEditSearch = (value) => {
+  setEditSearchText(value);
+  const filtered = filteredData.filter(
+    (item) =>
+      item.itemName.toLowerCase().includes(value.toLowerCase()) ||
+      item.code.toLowerCase().includes(value.toLowerCase())
+  );
+  setEditFilteredData(filtered);
+};
 
   useEffect(() => {
     fetchTradingInventory();
@@ -113,6 +138,7 @@ const TradingPage = () => {
   // Handle edit functionality
   const handleEdit = (record) => {
     setEditingRow(record._id);
+      setEditSource("editItems");
     setUpdatedInventory({
       _id: record._id,
       manufacturedDt: record.manufacturedDt ? dayjs(record.manufacturedDt, "YYYY-MM-DD") : null,
@@ -120,13 +146,39 @@ const TradingPage = () => {
       returnDate: record.manufacturedDt ? dayjs(record.manufacturedDt).add(record.shelfLife, 'day') : null,
       isActive: record.isActive ?? true, // fallback to true if undefined
     });
+     // ✅ set form values explicitly
+     form.setFieldsValue({
+        manufacturedDt: record.manufacturedDt ? dayjs(record.manufacturedDt) : null,
+        returnDate: record.returnDate ? dayjs(record.returnDate) : null,
+        isActive: record.isActive,
+      });
     setPopupModal(true); // Open the modal
   };
+
+  // Handle edit functionality
+    const handleEditFromUpcomingReturns = (record) => {
+      setEditingRow(record._id);
+        setEditSource("upcomingReturns");
+      setUpdatedInventory({
+        _id: record._id,
+        manufacturedDt: record.manufacturedDt ? dayjs(record.manufacturedDt, "YYYY-MM-DD") : null,
+        shelfLife: record.shelfLife || 0, // Default shelf life if not available
+        returnDate: record.manufacturedDt ? dayjs(record.manufacturedDt).add(record.shelfLife, 'day') : null,
+        isActive: record.isActive ?? true, // fallback to true if undefined
+      });
+       // ✅ set form values explicitly
+       form.setFieldsValue({
+          manufacturedDt: record.manufacturedDt ? dayjs(record.manufacturedDt) : null,
+          returnDate: record.returnDate ? dayjs(record.returnDate) : null,
+          isActive: record.isActive,
+        });
+      setPopupModal(true); // Open the modal
+    };
 
   // Handle saving updated inventory
   const handleSave = async () => {
     try {
-      await axios.post("/api/items/update-inventory", {
+      await axios.post("http://localhost:4000/api/items/update-inventory", {
         id: updatedInventory._id,
         manufacturedDt: updatedInventory.manufacturedDt,
         returnDate: updatedInventory.returnDate,
@@ -277,6 +329,19 @@ if (returnDate.isSame(today, 'day')) {
 
 
     const columnsReturns = [
+    {
+      title: "Actions",
+      dataIndex: "_id",
+      render: (id, record) => (
+        <div>
+          <EditOutlined
+            style={{ cursor: "pointer" }}
+            onClick={() => handleEditFromUpcomingReturns(record)} // ✅ reuse same handler
+          />
+        </div>
+      ),
+    },
+
       {
         title: "Code",
         dataIndex: "code",
@@ -417,7 +482,7 @@ if (returnDate.isSame(today, 'day')) {
 
   return (
     <DefaultLayout>
-      <Collapse defaultActiveKey={["2"]} accordion>
+      <Collapse defaultActiveKey={["3"]} accordion>
 
 
         {/* Returns Section */}
@@ -431,7 +496,7 @@ if (returnDate.isSame(today, 'day')) {
               <h4>Upcoming Returns</h4>
             )
           }
-          key="2"
+          key="3"
         >
           <h1>Items Near or Past Return Date</h1>
           <div style={{ overflowX: "auto" }}>
@@ -455,7 +520,7 @@ if (returnDate.isSame(today, 'day')) {
 
          <Panel
                   header={
-                    hasMissingManufacturedDate ? (
+                    newItems.length > 0 ? (
                       <Tooltip title="Some items are missing Manufactured Date. Please update.">
                         <h4 className="tab-alert" >New Items ⚠️</h4>
                       </Tooltip>
@@ -473,6 +538,7 @@ if (returnDate.isSame(today, 'day')) {
                       onChange={(e) => handleSearch(e.target.value)}
                       style={{ width: 800 }}
                     />
+
                   </div>
 
                   <div style={{ overflowX: "auto" }}>
@@ -490,39 +556,45 @@ if (returnDate.isSame(today, 'day')) {
                 </Panel>
 
         {/* Edit Dates Section */}
-        <Panel
-          header={
 
-               <h4 >Edit Items</h4>
 
-          }
-          key="1"
-        >
-          <div className="d-flex justify-content-between">
-            <h1>Trading Inventory</h1>
-            <Input.Search
-              placeholder="Search"
-              value={searchText}
-              onChange={(e) => handleSearch(e.target.value)}
-              style={{ width: 800 }}
-            />
-          </div>
 
-          <div style={{ overflowX: "auto" }}>
-            <Table
-              columns={columns}
-              dataSource={filteredData} // Unfiltered for edit section
-              rowKey="_id"
-              bordered
-              pagination={{ pageSize: 10 }}
-              rowClassName={(record) => getRowClass(record)}
-              scroll={{ x: "max-content" }}
-              onChange={handleTableChange}
-            />
-          </div>
-        </Panel>
 
       </Collapse>
+
+      {/* 🔘 Toggle button above Edit Items */}
+      <div className="mt-4">
+        <Button
+          type="primary"
+          onClick={() => setShowEditItems(!showEditItems)}
+        >
+          {showEditItems ? "Hide Edit Items" : "Show Edit Items"}
+        </Button>
+
+        {showEditItems && (
+          <div className="mt-3">
+            <h4>Edit Items</h4>
+
+             {/* 🔍 Search just for Edit Items */}
+                  <div className="mb-3 d-flex justify-content-end">
+                    <Input.Search
+                      placeholder="Search Edit Items"
+                      value={editSearchText}
+                      onChange={(e) => handleEditSearch(e.target.value)}
+                      style={{ width: 400 }}
+                    />
+                  </div>
+            <Table
+              rowKey="_id"
+              columns={columns}
+              dataSource={editFilteredData}   // ✅ fixed
+              rowClassName={getRowClass}
+              pagination={{ pageSize: 5 }}
+            />
+          </div>
+        )}
+      </div>
+
 
 
       {popupModal && (
@@ -549,37 +621,43 @@ if (returnDate.isSame(today, 'day')) {
               <Input value={updatedInventory.shelfLife} disabled />
             </Form.Item>
 
-            <Form.Item
-              name="manufacturedDt"
-              label="Manufactured Date"
-              rules={[{ required: true, message: "Please select a manufactured date" }]}
-            >
-              <DatePicker
-                value={updatedInventory.manufacturedDt}
-                format="DD-MM-YYYY"
-                onChange={(date) => {
-                  const newReturnDate = date && updatedInventory.shelfLife
-                    ? date.clone().add(updatedInventory.shelfLife, "day")
-                    : null;
-                  setUpdatedInventory((prev) => ({
-                    ...prev,
-                    manufacturedDt: date,
-                    returnDate: newReturnDate,
-                  }));
-                  form.setFieldsValue({ returnDate: newReturnDate });
-                }}
-              />
-            </Form.Item>
+            {editSource !== "upcomingReturns" && (
+                <>
+                  <Form.Item
+                    name="manufacturedDt"
+                    label="Manufactured Date"
+                    rules={[{ required: true, message: "Please select a manufactured date" }]}
+                  >
+                    <DatePicker
+                      value={updatedInventory.manufacturedDt}
+                      format="DD-MM-YYYY"
+                      onChange={(date) => {
+                        const newReturnDate =
+                          date && updatedInventory.shelfLife
+                            ? date.clone().add(updatedInventory.shelfLife, "day")
+                            : null;
 
-            <Form.Item name="returnDate" label="Return Date">
-              <DatePicker
-                value={updatedInventory.returnDate}
-                format="DD-MM-YYYY"
-                onChange={(date) =>
-                  setUpdatedInventory((prev) => ({ ...prev, returnDate: date }))
-                }
-              />
-            </Form.Item>
+                        setUpdatedInventory((prev) => ({
+                          ...prev,
+                          manufacturedDt: date,
+                          returnDate: newReturnDate,
+                        }));
+                        form.setFieldsValue({ returnDate: newReturnDate });
+                      }}
+                    />
+                  </Form.Item>
+
+                  <Form.Item name="returnDate" label="Return Date">
+                    <DatePicker
+                      value={updatedInventory.returnDate}
+                      format="DD-MM-YYYY"
+                      onChange={(date) =>
+                        setUpdatedInventory((prev) => ({ ...prev, returnDate: date }))
+                      }
+                    />
+                  </Form.Item>
+                </>
+              )}
 
             <Form.Item name="isActive" label="Is Active" valuePropName="checked">
               <Switch
